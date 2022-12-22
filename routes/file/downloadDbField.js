@@ -7,16 +7,17 @@ function middleware(req,res,next){
     let tableName= req.query.tableName;
     let /* DataQuery */ filter = q.fromObject(JSON.parse(req.query.filter));
     let columnAttach = req.query.columnAttach;
-    ctx.conn.select({
+    ctx.conn.readSingleValue({
+        expr: columnAttach,
         tableName:tableName,
         filter:filter
     })
-        .done(resArr=>{
-            if (resArr.length===0){
+        .done(result=>{
+            if (!result){
                 res.status(410).send("Error reading attachment from table " + tableName);
                 return;
             }
-            let buffer = new Buffer(res,"base64");
+            let buffer = new Buffer(result,"base64");
             let numlen= buffer.indexOf(0);
             let fNameBuff = buffer.slice(0,numlen);
             let fileName= fNameBuff.toString('utf-8');

@@ -8,6 +8,7 @@ const jsDataSet = require("./../../client/components/metadata/jsDataSet");
 function select(req,res,next){
     let ctx = req.app.locals.context;
     let filter = null;
+    //console.log(req);
     if (req.body.filter){
         let jsonFilter= JSON.parse(req.body.filter);
         filter = q.fromObject(jsonFilter);

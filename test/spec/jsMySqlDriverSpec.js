@@ -16,7 +16,7 @@ const path = require("path");
  * ******************************************************************************************
  * It's necessary, before start running the test, to create a file templated like:
  *  { "server": "db server address",
- *    "dbName": "database name",  //this must be an EMPTY database
+ *    "database": "database name",  //this must be an EMPTY database
  *    "user": "db user",
  *    "pwd": "db password"
  *  }
@@ -26,7 +26,7 @@ var configName = path.join('test', 'dbMySql.json');
 var dbConfig;
 if (process.env.TRAVIS){
     dbConfig = { "server": "127.0.0.1",
-        "dbName": "test",
+        "database": "test",
         "user": "root",
         "pwd": ""
     };
@@ -56,14 +56,14 @@ describe('MySqlDriver ', function () {
                 useTrustedConnection: false,
                 user: dbConfig.user,
                 pwd: dbConfig.pwd,
-                database: dbConfig.dbName
+                database: dbConfig.database
             },
             bad: {
                 server: dbConfig.server,
                 useTrustedConnection: false,
                 user: dbConfig.user,
                 pwd: dbConfig.pwd + 'AA',
-                database: dbConfig.dbName
+                database: dbConfig.database
             }
         };
 

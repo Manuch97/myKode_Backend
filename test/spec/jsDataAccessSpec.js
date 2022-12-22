@@ -38,7 +38,7 @@ const configName = path.join('test', 'dbMySql.json');
 let dbConfig;
 if (process.env.TRAVIS){
     dbConfig = { "server": "127.0.0.1",
-        "dbName": "test",
+        "database": "test",
         "user": "root",
         "pwd": ""
     };
@@ -54,7 +54,7 @@ const dbInfo = {
         useTrustedConnection: false,
         user: dbConfig.user,
         pwd: dbConfig.pwd,
-        database: dbConfig.dbName,
+        database: dbConfig.database,
         sqlModule: 'jsMySqlDriver'
     },
     bad: {
@@ -62,7 +62,7 @@ const dbInfo = {
         useTrustedConnection: false,
         user: dbConfig.user,
         pwd: dbConfig.pwd + 'AA',
-        database: dbConfig.dbName,
+        database: dbConfig.database,
         sqlModule: 'jsMySqlDriver'
     }
 };

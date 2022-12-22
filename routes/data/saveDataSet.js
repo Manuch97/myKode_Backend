@@ -29,6 +29,7 @@ async function saveDataSet(req,res,next) {
             res.status(500).json({error: "Not valid entity:" + tableName});
             return;
         }
+
         meta.editType = editType;
 
         if (!isAnonymousAllowed(req, tableName, editType, ds)) {
@@ -44,8 +45,7 @@ async function saveDataSet(req,res,next) {
             }
         }
         let isValid = true;
-
-        await forEachAsync(Object.keys(ds.tables), async (t) => {
+         await forEachAsync(Object.keys(ds.tables), async (t) => {
             const table = ds.tables[t];
             if (t !== tableName && !metaModel.isSubEntity(table, ds.tables[tableName])) return true;
             let tName = table.tableForReading();
@@ -64,7 +64,7 @@ async function saveDataSet(req,res,next) {
                let resValid;
                try {
                    resValid = await currMeta.isValid(DR);
-                   if (resValid === null) return true;
+                   if (resValid === null || resValid===undefined) return true;
                    isValid = false;
 
                    // at run time for serialization id property is evalued as
@@ -74,13 +74,13 @@ async function saveDataSet(req,res,next) {
                    // this.table = table;
                    // this.canIgnore = canIgnore; // true/false
                    //
-                   prevResult.push(new jsBusinessLogic.BusinessMessage({
+                   prevResult.addMessage(new jsBusinessLogic.BusinessMessage({
                        r: DR,
                        post: false,  // considero come pre
                        shortMsg: resValid.errMsg,    //errore breve, per le business rule
 
                        //Serialized as description
-                       longMsg: `Tabella: ${tName} campo: ${resValid.errField}  err: {resValid.errMsg}`,
+                       longMsg: `Tabella: ${tName} campo: ${resValid.errField}  err: ${resValid.errMsg}`,
                        canIgnore: false,
                        idDetail: "validazione",
 
@@ -90,13 +90,13 @@ async function saveDataSet(req,res,next) {
                    }));
                } catch (e) {
                    isValid = false;
-                   prevResult.push(new jsBusinessLogic.BusinessMessage({
+                   prevResult.addMessage(new jsBusinessLogic.BusinessMessage({
                        r: DR,
                        post: false,  // considero come pre
-                       shortMsg: resValid.errMsg,    //errore breve, per le business rule
+                       shortMsg: "Exception",    //errore breve, per le business rule
 
                        //Serialized as description
-                       longMsg: `Bisogna rivedere il metodo isValid della tabella: ${tName}  err: {e}`,
+                       longMsg: `Bisogna rivedere il metodo isValid della tabella: ${tName}  err: ${e} ctx: ${JSON.stringify(ctx.localResource.dictionary)}`,
                        canIgnore: false,
                        idDetail: "validazione",
 
@@ -114,7 +114,7 @@ async function saveDataSet(req,res,next) {
             let dsJson = JSON.stringify(ds.serialize(true));
             res.json({
                 dataset: dsJson,
-                messages: prevResult.map(m => serializeMessage(m)),
+                messages: prevResult.checks.map(m => serializeMessage(m)),
                 success: false,
                 canIgnore: false
             });

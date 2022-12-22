@@ -81,6 +81,7 @@ async function mergeFile(fileName){
     }
     catch (err){
         //did not exist
+        console.log(err);
     }
     /* SortedFile[] */
     let mergeList = [];
@@ -108,12 +109,9 @@ async function mergeFile(fileName){
 async function middleware(req,res,next){
     let ctx = req.app.locals.context;
 
-
-
     if (!req.files || Object.keys(req.files).length === 0) {
         return res.status(400).send('No files were uploaded.');
     }
-
 
     let resFile = null;
     for (let i=0; i<req.files.length; i++){
@@ -121,9 +119,8 @@ async function middleware(req,res,next){
         resFile = await mergeFile(file.originalname);
     }
 
-
     if (resFile === null){
-        return res.send(200,"");
+        return res.send(200);
     }
     let attachTable = "attach";
 

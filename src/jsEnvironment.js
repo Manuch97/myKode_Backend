@@ -145,6 +145,9 @@ Environment.prototype.getCustomUser= function(conn){
         .then(idcustomuser =>{
             this.sys("idcustomuser",idcustomuser);
             d.resolve(idcustomuser);
+        })
+        .fail((err)=>{
+            d.reject(err);
         });
     return d.promise();
 };

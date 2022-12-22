@@ -2,7 +2,7 @@
 
 console.log("running MetaDataSpec");
 let LocalResource = require("./../../client/components/metadata/LocalResource");
-let LocalResourceIT = require("./../../client/components/languages/LocalResourceIt");
+let LocalResourceIT = require("./../../client/components/i18n/LocalResourceIt");
 
 let localResource = new LocalResource();
 localResource.setLanguage("it");

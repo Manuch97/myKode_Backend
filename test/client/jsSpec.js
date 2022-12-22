@@ -74,11 +74,11 @@ describe('Test Corso', function () {
         localizedResources: {},
 
         register:function(code){
-            console.log(this);
+            //console.log(this);
             classeA.prototype.dictionaries[code]=1;
         },
         getDict:function (code){
-            console.log(this);
+            //console.log(this);
             return classeA.prototype.dictionaries[code];
         }
     };

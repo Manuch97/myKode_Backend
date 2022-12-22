@@ -6,7 +6,7 @@
  * @description
  * Collection of utility functions
  */
-(function (Deferred,OriginaDeferred) {
+(function (Deferred, OriginaDeferred, when) {
 
 
     /** Detect free variable `global` from Node.js. */
@@ -150,7 +150,7 @@
      * @returns {function}
      */
     utils.sequence = function (thisObject, funArgs) {
-        return OriginaDeferred.when(_.map(arguments,
+        return when(_.map(arguments,
             function (f, index) {
                 if (index === 0) return true;
                 return utils.callOptAsync(f);
@@ -283,7 +283,7 @@
         return new OriginaDeferred().resolve(expression).promise();
     };
 
-    let univoqueId=0;
+    let uniqueId=0;
 
     /**
      * @method getUnivoqueId
@@ -292,9 +292,9 @@
      * Returns a progressive number. This number will be attached eventually to the id of the modal, to assure that each control is univoque.
      * @returns {number}
      */
-    utils.getUnivoqueId = function () {
-        univoqueId++;
-        return univoqueId;
+    utils.getUniqueId = function () {
+        uniqueId++;
+        return uniqueId;
     };
 
 
@@ -338,18 +338,24 @@
 // Some AMD build optimizers like r.js check for condition patterns like the following:
     //noinspection JSUnresolvedVariable
     if (typeof define === 'function' && typeof define.amd === 'object' && define.amd) {
-        // Expose lodash to the global object when an AMD loader is present to avoid
-        // errors in cases where lodash is loaded by a script tag and not intended
-        // as an AMD module. See http://requirejs.org/docs/errors.html#mismatch for
-        // more details.
-        root.utils = utils;
+        // Export for a browser or Rhino.
+        if (root.appMeta) {
+            root.appMeta.utils = utils;
+        }
+        else {
+            // Expose lodash to the global object when an AMD loader is present to avoid
+            // errors in cases where lodash is loaded by a script tag and not intended
+            // as an AMD module. See http://requirejs.org/docs/errors.html#mismatch for
+            // more details.
+            root.utils = utils;
 
-        // Define as an anonymous module so, through path mapping, it can be
-        // referenced as the "underscore" module.
-        //noinspection JSUnresolvedFunction
-        define(function () {
-            return utils;
-        });
+            // Define as an anonymous module so, through path mapping, it can be
+            // referenced as the "underscore" module.
+            //noinspection JSUnresolvedFunction
+            define(function () {
+                return utils;
+            });
+        }
     }
     // Check for `exports` after `define` in case a build optimizer adds an `exports` object.
     else if (freeExports && freeModule) {
@@ -372,6 +378,7 @@
     }
 
 }(  (typeof appMeta === 'undefined') ? require('./EventManager').Deferred : appMeta.Deferred,
-    (typeof $ === 'undefined')? require('JQDeferred'): $.Deferred
+    (typeof $ === 'undefined') ? require('JQDeferred') : $.Deferred,
+    (typeof $ === 'undefined') ? require('JQDeferred').when : $.when
 ));
 

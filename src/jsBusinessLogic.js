@@ -327,6 +327,7 @@ BusinessLogicResult.prototype.makeDbError = function (message,post){
  * @param {boolean} post
  */
 BusinessLogicResult.prototype.addDbError = function (message,post){
+    message = message.stack||message.message||message;
     return this.addMessage(this.makeDbError(message,post));
 };
 

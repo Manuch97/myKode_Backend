@@ -42,12 +42,12 @@ const mySqlDriver = require("../../src/jsMySqlDriver");
  *    "pwd": "db password"
  *  }
  */
-const configName = path.join('test', 'data','PostData', 'db.json');
+const configName = path.join('test', 'dbMySql.json');
 let dbConfig;
 
 if (process.env.TRAVIS){
     dbConfig = { "server": "127.0.0.1",
-        "dbName": "test",
+        "database": "test",
         "user": "root",
         "pwd": ""
     };
@@ -70,7 +70,7 @@ const good = {
     useTrustedConnection: false,
     user: dbConfig.user,
     pwd: dbConfig.pwd,
-    database: dbConfig.dbName,
+    database: dbConfig.database,
     sqlModule: 'jsMySqlDriver'
 };
 
@@ -142,7 +142,7 @@ describe("jsPostData",function() {
 
 
         it('should run the setup script', function (done) {
-            sqlConn.run(fs.readFileSync(path.join('test', 'data', 'PostData', 'setup.sql')).toString())
+            sqlConn.run(fs.readFileSync(path.join('test', 'data', 'PostData', 'setup.sql')).toString(),6000)
                 .done(function () {
                     expect(true).toBeTruthy();
                     done();
@@ -151,7 +151,7 @@ describe("jsPostData",function() {
                     expect(res).toBeUndefined();
                     done();
                 });
-        }, 60000);
+        },60000);
 
     });
 
@@ -303,24 +303,17 @@ describe("jsPostData",function() {
                         done();
                     });
             });
-
-
             it('should be a function', function () {
                 expect(SinglePostData.prototype.getChanges).toEqual(jasmine.any(Function));
             });
-
             it('should return an array', function () {
                 expect(SinglePostData.prototype.getChanges(d)).toEqual(jasmine.any(Array));
             });
-
-
             it('should return as many rows as there were modified in d', function () {
                 const p = new SinglePostData(),
                     res = p.getChanges(d);
                 expect(res.length).toBe(50);
             });
-
-
             it('should return as many rows as there were modified in d (2th set)', function () {
                 d.tables.tab1.acceptChanges();
                 d.tables.tab3.clear();
@@ -328,21 +321,18 @@ describe("jsPostData",function() {
                     res = p.getChanges(d);
                 expect(res.length).toBe(40);
             });
-
             it('should return as many rows as there were modified in d (3th set)', function () {
                 d.tables.tab4.rejectChanges();
                 const p = new SinglePostData(),
                     res = p.getChanges(d);
                 expect(res.length).toBe(45);
             });
-
             it('should return as many rows as there were modified in d (4th set)', function () {
                 d.acceptChanges();
                 const p = new SinglePostData(),
                     res = p.getChanges(d);
                 expect(res.length).toBe(0);
             });
-
             it('should return as many rows as there were modified in d (5th set)', function () {
                 d.tables.tab4.acceptChanges();
                 d.tables.tab6.acceptChanges();
@@ -366,7 +356,6 @@ describe("jsPostData",function() {
                     res = p.getChanges(d);
                 expect(res.length).toBe(40);
             });
-
             it('should return as many rows as there were modified in d (6th set)', function () {
                 d.tables.tab4.acceptChanges();
                 d.tables.tab6.acceptChanges();
@@ -391,7 +380,6 @@ describe("jsPostData",function() {
                     res = p.getChanges(d);
                 expect(res.length).toBe(41);
             });
-
             it('checkIsNotParent should return not-parents', function () {
                 d.tables.tab4.acceptChanges();
                 d.tables.tab6.acceptChanges();
@@ -429,7 +417,6 @@ describe("jsPostData",function() {
                 d.tables.tab5.clear();
                 expect(p.checkNotParent(d.tables.tab4, new Set())).toBeTruthy();
             });
-
             it('checkIsNotChild should return not-childs', function () {
                 d.tables['tab4'].acceptChanges();
                 d.tables['tab6'].acceptChanges();
@@ -466,7 +453,6 @@ describe("jsPostData",function() {
                 d.tables.tab3.clear();
                 expect(p.checkNotChild(d.tables.tab4, new Set())).toBeTruthy();
             });
-
             it('sortTables should work called with checkIsNotChild', function () {
                 d.tables.tab4.acceptChanges();
                 d.tables.tab6.acceptChanges();
@@ -496,7 +482,6 @@ describe("jsPostData",function() {
                 expect(_.map(res, 'name')).toEqual(['tab7', 'tab1', 'tab8', 'tab2', 'tab9', 'tab3', 'tab10', 'tab4', 'tab5', 'tab6']);
 
             });
-
             it('sortTables should work called with checkNotParent', function () {
                 d.tables.tab4.acceptChanges();
                 d.tables.tab6.acceptChanges();
@@ -522,7 +507,6 @@ describe("jsPostData",function() {
                 expect(_.map(res, 'name')).toEqual(['tab10', 'tab9', 'tab8', 'tab7', 'tab6', 'tab5', 'tab4', 'tab3', 'tab2', 'tab1']);
 
             });
-
             it('sortTables should work called with checkNotParent (2th set)', function () {
                 d.newRelation('rel000', 'tab6', 'extid6', 'tab3', 'id3');
                 d.newRelation('rel001', 'tab10', 'extid1', 'tab1', 'id1');
@@ -551,7 +535,6 @@ describe("jsPostData",function() {
                 expect(_.map(res, 'name')).toEqual(['tab4', 'tab3', 'tab2', 'tab1', 'tab10', 'tab9', 'tab8', 'tab7', 'tab6', 'tab5']);
 
             });
-
             it('insert on parents should precede insert on child', function () {
                 d.tables.tab4.acceptChanges();
                 d.tables.tab6.acceptChanges();
@@ -595,7 +578,6 @@ describe("jsPostData",function() {
                     }
                 }
             });
-
             it('deletes on child should precede deletes on parent', function () {
                 d.tables.tab4.acceptChanges();
                 d.tables.tab6.acceptChanges();
@@ -655,9 +637,7 @@ describe("jsPostData",function() {
                     }
                 }
             });
-
-            describe('deletes should precede other kind of operations', function () {
-                it('insert on parents should precede insert on child', function () {
+            it('insert on parents should precede insert on child', function () {
                     d.tables.tab4.acceptChanges();
                     d.tables.tab6.acceptChanges();
                     d.tables.tab8.acceptChanges();
@@ -694,8 +674,9 @@ describe("jsPostData",function() {
                             expect(true).toBeFalsy(); //should not reach here
                         }
                     }
+                    expect(true).toBeTrue();
                 });
-            });
+
         });
 
         describe('MaxCacher', function () {
@@ -1255,7 +1236,7 @@ describe("jsPostData",function() {
                         expect(DAC.open).toHaveBeenCalled();
                         expect(DAC.beginTransaction).toHaveBeenCalled();
                         expect(postData.allPost[0].physicalPostBatch).not.toHaveBeenCalled();
-                        expect(_.find(res.checks,new BasicMessage("Exception threw on purpose", false))).toBeDefined();
+                        expect(_.find(res.checks, {msg:"Exception threw on purpose",canIgnore: false})).toBeDefined();
                         expect(DAC.rollback).toHaveBeenCalled();
                         expect(DAC.close).toHaveBeenCalled();
                         expect(DAC.isOpen).toBeFalsy();
@@ -1461,8 +1442,8 @@ describe("jsPostData",function() {
                     .always(function (res) {
                         //console.log(res);
                         expect(postData.getChecks.calls.count()).toBe(2);
-                        expect(res.checks).toContain(_.extend(new BasicMessage("code12", true), {post: false}));
-                        expect(res.checks).toContain(_.extend(new BasicMessage("code13", true), {post: true}));
+                        expect(_.find(res.checks,{msg:"code12",canIgnore:true,post:false})).toBeDefined();
+                        expect(_.find(res.checks, {msg:"code13",canIgnore:true,post:true})).toBeDefined();
                         expect(DAC.close).toHaveBeenCalled();
                         expect(DAC.rollback).toHaveBeenCalled();
                         expect(DAC.isOpen).toBeFalsy();
@@ -1510,7 +1491,7 @@ describe("jsPostData",function() {
                         expect(_.find(res.checks,_.extend(new BasicMessage("code12", true), {post: true})))
                             .toBeUndefined();
                         //expect(_.find(res.checks,new BasicMessage("code12", true))).toBeUndefined();
-                        expect(_.find(res.checks,new BasicMessage("physicalPostBatch fake error", false))).toBeDefined();
+                        expect(_.find(res.checks, {msg:"physicalPostBatch fake error",canIgnore:false})).toBeDefined();
                         expect(DAC.close).toHaveBeenCalled();
                         expect(DAC.rollback).toHaveBeenCalled();
                         expect(DAC.isOpen).toBeFalsy();
@@ -2924,7 +2905,7 @@ describe("jsPostData",function() {
                         expect(DAC.beginTransaction.calls.count()).toBe(1);
                         expect(postData.allPost[0].physicalPostBatch).not.toHaveBeenCalled();
                         expect(postData.allPost[1].physicalPostBatch).not.toHaveBeenCalled();
-                        expect(_.find(res.checks,new BasicMessage("Exception threw on purpose 1", false))).toBeDefined();
+                        expect(_.find(res.checks,{msg:"Exception threw on purpose 1", canIgnore:false})).toBeDefined();
                         expect(res.checks.length).toBe(1);
                         expect(DAC.rollback).toHaveBeenCalled();
                         expect(DAC.close).toHaveBeenCalled();
@@ -3263,16 +3244,17 @@ describe("jsPostData",function() {
                     .always(function (res) {
                         //console.log(res);
                         expect(postData.getChecks.calls.count()).toBe(1);
-                        expect(_.find(res.checks,_.extend(new BasicMessage("codeA12", true), {post: false})))
+                        expect(_.find(res.checks,{msg:"codeA12",canIgnore:true,post:false}))
                             .toBeDefined();
-                        expect(_.find(res.checks,_.extend(new BasicMessage("codeA12", true), {post: true})))
-                            .toBeUndefined();
+                        expect(_.find(res.checks,{msg:"codeA12",canIgnore:true,post:true}))
+                        .toBeUndefined();
 
-                        expect(_.find(res.checks,_.extend(new BasicMessage("codeB13", true), {post: false})))
-                            .toBeDefined();
-                        expect(_.find(res.checks,_.extend(new BasicMessage("codeB13", true), {post: true})))
-                            .toBeUndefined();
-                        expect(_.find(res.checks,new BasicMessage("physicalPostBatch fake error", false)))
+                        expect(_.find(res.checks,{msg:"codeB13",canIgnore:true,post:false}))
+                        .toBeDefined();
+                        expect(_.find(res.checks,{msg:"codeB13",canIgnore:true,post:true}))
+                        .toBeUndefined();
+
+                        expect(_.find(res.checks,{msg:"physicalPostBatch fake error",canIgnore:false}))
                             .toBeDefined();
 
                         expect(DAC.close).toHaveBeenCalled();
@@ -3335,7 +3317,7 @@ describe("jsPostData",function() {
                             _.extend(new BasicMessage("codeB13", true), {post: false}))).toBeDefined();
                         expect(_.find(res.checks,_.extend(new BasicMessage("codeB13", true), {post: true})))
                                         .toBeUndefined();
-                        expect(_.find(res.checks,new BasicMessage("DataBase Error threw on purpose", false)))
+                        expect(_.find(res.checks,{msg:"DataBase Error threw on purpose", canIgnore:false}))
                             .toBeDefined();
                         expect(DAC.close).toHaveBeenCalled();
                         expect(DAC.rollback).toHaveBeenCalled();
@@ -4299,7 +4281,7 @@ describe("jsPostData",function() {
                         expect(DAC.beginTransaction.calls.count()).toBe(1);
                         expect(postData.doAllPhisicalPostBatch).toHaveBeenCalled();
                         expect(postDataInner.doAllPhisicalPostBatch).not.toHaveBeenCalled();
-                        expect(_.find(res.checks,new BasicMessage("Exception threw on purpose 1", false)))
+                        expect(_.find(res.checks,{msg:"Exception threw on purpose 1",canIgnore:false}))
                             .toBeDefined();
                         expect(res.checks.length).toBe(1);
                         expect(DAC.rollback).toHaveBeenCalled();
@@ -4588,10 +4570,8 @@ describe("jsPostData",function() {
                         //console.log(res);
                         expect(postData.getChecks.calls.count()).toBe(2);
                         expect(postDataInner.getChecks.calls.count()).toBe(2);
-                        expect(_.find(res.checks,_.extend(new BasicMessage("codeB12", true), {post: false})))
-                            .toBeDefined();
-                        expect(_.find(res.checks,_.extend(new BasicMessage("codeB13", true), {post: true})))
-                            .toBeDefined();
+                        expect(_.find(res.checks,{msg:"codeB12",canIgnore:true,post:false})).toBeDefined();
+                        expect(_.find(res.checks,{msg:"codeB13",canIgnore:true,post:true})).toBeDefined();
                         expect(DAC.close).toHaveBeenCalled();
                         expect(DAC.rollback).toHaveBeenCalled();
                         expect(DAC.rollback.calls.count()).toBe(1);

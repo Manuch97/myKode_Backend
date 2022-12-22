@@ -9,6 +9,23 @@
 /*globals initConfig, appPath */
 /*jshint camelcase: false */
 
+const jasmineEnv=  {
+    // Whether to fail a spec that ran no expectations
+    failSpecWithNoExpectations: true,
+
+    // Stop execution of a spec after the first expectation failure in it
+    stopSpecOnExpectationFailure: false,
+
+    // Stop execution of the suite after the first spec failure
+    stopOnSpecFailure: false,
+
+    // Run specs in semi-random order
+    random: false
+};
+
+let allJasmineConfig= {
+
+}
 const glob = require('glob');
 
 const jsdoc2md = require('jsdoc-to-markdown');
@@ -29,22 +46,10 @@ const JasmineConsoleReporter = require('jasmine-console-reporter');
 const rep = JasmineClass.ConsoleReporter;  //require("jasmine.console_reporter.js");
 //console.log(JasmineClass);
 
-// const SpecReporter = require('jasmine-spec-reporter').SpecReporter;
-// jasmineObj.jasmine.getEnv().addReporter(
-//     new SpecReporter({
-//         // add jasmine-spec-reporter
-//         spec: {
-//             displaySuccessful:true,
-//             displayPending: true,
-//         },
-//     })
-// );
-//
-
 const reporter = new JasmineConsoleReporter({
     colors: 2,           // (0|false)|(1|true)|2
     cleanStack: 1,       // (0|false)|(1|true)|2|3
-    verbosity: 3,        // (0|false)|1|2|(3|true)|4|Object
+    verbosity: 1,        // (0|false)|1|2|(3|true)|4|Object
     listStyle: 'indent', // "flat"|"indent"
     timeUnit: 'ms',      // "ms"|"ns"|"s"
     timeThreshold: { ok: 500, warn: 1000, ouch: 3000 }, // Object|Number
@@ -54,13 +59,6 @@ const reporter = new JasmineConsoleReporter({
 });
 
 jasmineObj.jasmine.getEnv().addReporter(reporter);
-
-//
-// jasmineObj.jasmine.getEnv().addReporter(new rep({
-//     verbosity: 2,
-//     color: true
-// }));
-//
 
 
 
@@ -130,7 +128,7 @@ module.exports = function (grunt) {
                 plugins: ["markdown","jsdoc-summarize2"],
                 src: ['src/*.js',
                         'client/components/*/*.js',
-                        //'client/components/languages/*.js',
+                        //'client/components/i18n/*.js',
                         'routes/*/*.js'
                 ],
                 options: {
@@ -153,7 +151,8 @@ module.exports = function (grunt) {
         },
 
         watch: {
-            files: ['src/*.js','client/components/metadata/*.js','client/components/languages/*.js'],
+            files: ['src/*.js','client/components/metadata/*.js',
+                'client/components/i18n/*.js'],
             tasks: ['test'],
             options: {
                 livereload: true
@@ -179,51 +178,22 @@ module.exports = function (grunt) {
         },
 
         jasmine: {
-            client: {
+            common: {
                 spec_dir: "./test/client",
                 spec_files: ["*Spec.js"],
-                // Configuration of the Jasmine environment
-                // "env" is optional, as are all of its properties.
-                env: {
-                    // Whether to fail a spec that ran no expectations
-                    failSpecWithNoExpectations: false,
-
-                    // Stop execution of a spec after the first expectation failure in it
-                    stopSpecOnExpectationFailure: false,
-
-                    // Stop execution of the suite after the first spec failure
-                    stopOnSpecFailure: false,
-
-                    // Run specs in semi-random order
-                    random: false
-                }
-            },
-
-            corso:{
-                spec_dir: "./test/client",
-                spec_files: ["jsSpec.js"],
+                env: jasmineEnv
             },
 
             server: {
                 spec_dir: "./test/spec",
                 spec_files: ["*Spec.js"],
-                // Configuration of the Jasmine environment
-                // "env" is optional, as are all of its properties.
-                env: {
-                    // Whether to fail a spec that ran no expectations
-                    failSpecWithNoExpectations: false,
-
-                    // Stop execution of a spec after the first expectation failure in it
-                    stopSpecOnExpectationFailure: false,
-
-                    // Stop execution of the suite after the first spec failure
-                    stopOnSpecFailure: false,
-
-                    // Run specs in semi-random order
-                    random: false
-                }
+                env: jasmineEnv
             },
-
+            midway: {
+                spec_dir: './test/midway/',
+                spec_files: ["*Spec.js"],
+                env: jasmineEnv
+            },
             auto: {
                 options: {
                     autotest: true,
@@ -244,6 +214,7 @@ module.exports = function (grunt) {
         autotest: false
     };
 
+    //Cerca i test sui moduli in  src
     fs.readdirSync(path.join(__dirname, 'src')).forEach(file => {
         let className = file.replace(".js", "");
         if (fs.existsSync(path.join(__dirname, 'test', 'spec', className + 'Spec.js'))) {
@@ -268,88 +239,42 @@ module.exports = function (grunt) {
         }
     });
 
-    //test con jasmine
+    //crea gli unit test con jasmine (sia quelli sotto src che quelli sotto client/components/metadata
+    // questi saranno visibili sotto il task "jasmine"
     classes.forEach(function (className) {
         //console.log("registering "+className+"Spec");
-        gruntConfig.jasmine[className + "Spec"] = {
+        //Aggiunge la configurazione sotto "jasmine"
+        allJasmineConfig[className + "Spec"] = {
             spec_dir: './test/spec/',
             spec_files: [className + "Spec.js"],
-            env: {
-                // Whether to fail a spec that ran no expectations
-                failSpecWithNoExpectations: false,
-
-                // Stop execution of a spec after the first expectation failure in it
-                stopSpecOnExpectationFailure: false,
-
-                // Stop execution of the suite after the first spec failure
-                stopOnSpecFailure: false,
-
-                // Run specs in semi-random order
-                random: false
-            }
+            env: jasmineEnv
         };
     });
 
     classesMidway.push('jsApplicationAnonymous');
 
-
+    //Crea la configurazione per tutti i test Midway
     classesMidway.forEach(function (className) {
-        gruntConfig.jasmine[className + "Midway"] = {
+        allJasmineConfig[className + "Midway"] = {
             spec_dir: './test/midway/',
             spec_files: [className + "Spec.js"],
-            env: {
-                // Whether to fail a spec that ran no expectations
-                failSpecWithNoExpectations: true,
-
-                // Stop execution of a spec after the first expectation failure in it
-                stopSpecOnExpectationFailure: true,
-
-                // Stop execution of the suite after the first spec failure
-                stopOnSpecFailure: true,
-
-                // Run specs in semi-random order
-                random: false
-            }
+            env: jasmineEnv
         };
     });
 
+    //Configura i test client
     classesClient.forEach(function (className) {
-        gruntConfig.jasmine[className + "Client"] = {
+        allJasmineConfig[className + "Client"] = {
             spec_dir: 'test/client',
             spec_files: [className + "Spec.js"],
-            env: {
-                // Whether to fail a spec that ran no expectations
-                failSpecWithNoExpectations: false,
-
-                // Stop execution of a spec after the first expectation failure in it
-                stopSpecOnExpectationFailure: false,
-
-                // Stop execution of the suite after the first spec failure
-                stopOnSpecFailure: false,
-
-                // Run specs in semi-random order
-                random: false
-            }
+            env: jasmineEnv
         };
     });
-
-    // jasmine.configureDefaultReporter({
-    //     // The `timer` passed to the reporter will determine the mechanism for seeing how long the suite takes to run.
-    //     timer: new jasmine.jasmine.Timer(),
-    //     // The `print` function passed the reporter will be called to print its results.
-    //     print: function() {
-    //         //console.stdout.write(arguments);
-    //         console.log(arguments[0].toString('utf8'));
-    //
-    //     },
-    //     // `showColors` determines whether or not the reporter should use ANSI color codes.
-    //     showColors: false
-    // });
-
 
     // Set the configuration for all the tasks
     grunt.initConfig(gruntConfig);
 
+    // Convert to MD every file under the
     grunt.registerTask("jsDocMD","jsdoc to MD",async function(cfgName){
         let folders = gruntConfig.jsdoc[cfgName].src;
         let done = this.async();
@@ -388,33 +313,83 @@ module.exports = function (grunt) {
     grunt.registerTask("jasmine", "jasmine runner", async function (configName) {
         let done = this.async();
         jasmineObj.loadConfig(gruntConfig.jasmine[configName]);
-        //grunt.log.writeln("starting "+configName);
-
 
         let result = await jasmineObj.execute();
 
-        // if (result.overallStatus === 'passed') {
-        //     grunt.log.writeln('All specs have passed');
-        // } else {
-        //     grunt.log.writeln('At least one spec has failed');
-        // }
+        if (result.overallStatus === 'passed') {
+            grunt.log.writeln('All specs have passed');
+        } else {
+            grunt.log.writeln('At least one spec has failed');
+        }
         done();
     });
 
-    grunt.registerTask('corso', ['jasmine:corso']);
 
     grunt.registerTask('docMD', ['jsDocMD:dist']);
 
     grunt.registerTask('doc', ['jsdoc','shell:jsdoc', 'open:doc']);
 
-    grunt.registerTask('test_Client', ['jasmine:client']);
-    grunt.registerTask('test_Server', ['jasmine:server']);
+    grunt.registerTask('common unit', ['jasmine:common']);
+    grunt.registerTask("server midway",["NodeStart","jasmine:midway"]); // , "NodeStop"
+    grunt.registerTask('server unit', ['jasmine:server']);
+
+    grunt.registerTask("createSqlDB","Create Sql DB",function(){
+        var done = this.async();
+        asyncCmd(
+            "node",
+            ["test/runSql",
+                "config\\dbList.json",
+                "test\\data\\jsApplication\\setup.sql",
+                "test_sqlServer"
+            ],
+            function (err, res, code, buffer) {
+                if (err) {
+                    grunt.log.writeln("createSqlDB error");
+                    grunt.log.writeln(err, code);
+                    done();
+                    return;
+                }
+                grunt.log.writeln("createSqlDB ok");
+                done();
+            }
+        );
+        setTimeout(function () {
+            grunt.log.writeln("createSqlDB timeout");
+            done();
+        }, 60000);
+    });
+
+    grunt.registerTask("destroySqlDB","Destroy Sql DB",function(){
+        var done = this.async();
+        asyncCmd(
+            "node",
+            ["test/runSql",
+                "config\\dbList.json",
+                "test\\data\\jsApplication\\Destroy.sql",
+                "test_sqlServer"
+            ],
+            function (err, res, code, buffer) {
+                if (err) {
+                    grunt.log.writeln("destroySqlDB error");
+                    grunt.log.writeln(err, code);
+                    done();
+                    return;
+                }
+                grunt.log.writeln("destroySqlDB ok");
+                done();
+            }
+        );
+        setTimeout(function () {
+            grunt.log.writeln("destroySqlDB timeout");
+            done();
+        }, 5000);
+    });
 
     grunt.registerTask("NodeStart", "start Node server.js", function () {
         var done = this.async();
         asyncCmd(
             "node",
-            ["server.js"],
+            ["--inspect", "server.js"],
             function (err, res, code, buffer) {
                 if (err) {
                     grunt.log.writeln("NodeStart error");
@@ -433,27 +408,10 @@ module.exports = function (grunt) {
         }, 5000);
     });
 
-    grunt.registerTask("test Client", "test client", async function () {
-        // //console.log(JSON.stringify());
-        // //jasmineObj.loadConfigFile('spec/support/jasmine.json');
-        //
-        // jasmineObj.loadConfig({
-        //     spec_dir: 'test/client',
-        //     spec_files: [
-        //         'test/client/jsDataSetSpec.js'
-        //     ]
-        // });
-        // jasmineObj.configureDefaultReporter({
-        //     showColors: false
-        // });
-        // jasmineObj.exitOnCompletion = false;
-        //
-        // // jasmineObj.executeSpecsInFolder("test/client/*.js", function(runner, log) {
-        // //     process.exit(runner.results().failedCount);
-        // // }, true, true);
-        // await jasmineObj.execute();
-        let done = this.async();
+    grunt.registerTask("e2e", ["createSqlDB", "NodeStart", "karma:spece2e","destroySqlDB"]);
 
+    grunt.registerTask("test Client", "test client", async function () {
+        let done = this.async();
         asyncCmd(
             "npx",
             ["jasmine", "test/client/jsDataSetSpec.js"],
@@ -474,31 +432,6 @@ module.exports = function (grunt) {
             done();
         }, 10000);
 
-        // console.log("executing npx jasmine");
-        // const stdout = exec('node', ['--version']);
-        // console.log(stdout);
-        //
-        // asyncCmd("node",["version"], //"npx",["jasmine","test/client/jsDataSet.js"],
-        //     (error, data) => {
-        //     if (error) {
-        //        // grunt.log.writeln("Error:", error);
-        //         //done();
-        //         return;
-        //     }
-        //     grunt.log.writeln(data.toString());
-        //     //done();
-        // });
-        //
-        // setTimeout(function() {
-        //     grunt.log.writeln("npx timeout");
-        //     done();
-        // },2000);
-
-        // exec("npx",["jasmine","test/client/jsDataSet.js"], (error, data) => {
-        //     console.log(error);
-        //     console.log(data.toString());
-        // });
-        //p.stdout.pipe(process.stdout);
     });
 
 
@@ -506,7 +439,7 @@ module.exports = function (grunt) {
         var done = this.async();
         asyncCmd(
             "taskkill",
-            ["/F /IM node.exe"],
+            ["/F", "/IM", "node.exe"],
             function (err, res, code, buffer) {
                 if (err) {
                     grunt.log.writeln("NodeStop error");
@@ -521,29 +454,27 @@ module.exports = function (grunt) {
         setTimeout(function () {
             grunt.log.writeln("Node server stopped (timeout)");
             done();
-        }, 2000);
+        }, 5000);
     });
 
     grunt.registerTask('serverStart', ['shell:startNode']);
     grunt.registerTask('serverStop', ['shell:stopNode']);
 
-    classes.forEach(function (className) {
-        grunt.registerTask(className + " Server", ['jasmine:' + className + "Spec"]);
-    });
-
-    classesClient.forEach(function (className) {
-        grunt.registerTask(className + " Client", ['jasmine:' + className + "Client"]);
-    });
-
-
-    classesMidway.forEach(function (className) {
-        grunt.registerTask(className + " Midway", ["NodeStart", 'jasmine:' + className + "Midway"]);//, 'keepalive'
-    });
-
+    // classes.forEach(function (className) {
+    //     grunt.registerTask(className + " Server", ['jasmine:' + className + "Spec"]);
+    // });
+    //
+    // classesClient.forEach(function (className) {
+    //     grunt.registerTask(className + " Client", ['jasmine:' + className + "Client"]);
+    // });
+    //
+    // classesMidway.forEach(function (className) {
+    //     grunt.registerTask(className + " Midway", [ 'jasmine:' + className + "Midway"]);//, 'keepalive'
+    // });
 
     //grunt.registerTask('default', ['test']);
 
     //grunt.registerTask("midway", ["NodeServer", "karma:spece2e"]);
 
-    grunt.registerTask("e2e", ["NodeServer", "karma:spece2e"]);
+
 };

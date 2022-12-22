@@ -38,10 +38,6 @@
      */
     function LocalResource() {
         this.dictionary= null;
-        this.currLng = "it";
-        // default è italiano, il file italiano avrà sicuramente tutte le stringhe, poiché parto sempre da quello
-        // per inserire nuove costanti per le stringhe
-        this.setLanguage(this.currLng);
     }
 
     LocalResource.prototype = {
@@ -66,7 +62,16 @@
          * @return {*}
          */
         getDictionary: function(language){
-            return LocalResource.prototype.dictionaries[language];
+            let res = LocalResource.prototype.dictionaries[language];
+            if (res) {
+                return res;
+            }
+            if (typeof appMeta=== 'undefined'){
+                let lbnSuffix = language.charAt(0).toUpperCase() + language.slice(1).toLowerCase();
+                res = require("./../i18n/LocalResource"+lbnSuffix);
+                LocalResource.prototype.dictionaries[language] = res;
+            }
+            return res;
         },
 
         /**
@@ -88,7 +93,7 @@
          * @method setLanguage
          * @public
          * @description Set the language for this instance of local resources
-         * @param {string} lng. language constant it for italian, en for english, fr: francaise etc..
+         * @param {string} lng language constant it for italian, en for english, fr: francaise etc..
          */
         setLanguage:function (lng) {
             this.currLng = lng;
@@ -96,12 +101,10 @@
             // creo il nome del prototipo a runtime senza cablare la switch così se aggiungo una lingua
             // viene automaticamente presa
             try {
-                let lbnSuffix = lng.charAt(0).toUpperCase() + lng.slice(1).toLowerCase();
                 if (appMeta){
                     //executed on client
-                    this.dict = this.getDictionary(lng); //appMeta['localResource'+lbnSuffix]();
-                    _.extend(this, this.dict.prototype);
-
+                    this.dictionary = this.getDictionary(lng); //appMeta['localResource'+lbnSuffix]();
+                    _.extend(this, this.dictionary);
 
                     // localizza eventuali custom control con localizzazione custom
                     this.localizeCustomControls(lng);
@@ -111,8 +114,11 @@
                     }
                 }
                 else {
-                    //executed on server, it was require("./../languages/LocalResource"+lbnSuffix).resource;
-                    this.dictionary =  this.getDictionary(lng);
+
+                    //executed on server
+                    //
+                    this.dictionary = this.getDictionary(lng);
+                    _.extend(this, this.dictionary);
                 }
 
             } catch (e){
@@ -291,7 +297,7 @@
         },
 
 
-        getDoYuoWantModifyEventResize:function (eventTitle, endDate) {
+        getDoYouWantModifyEventResize:function (eventTitle, endDate) {
             var s1 = this.replacePlaceolderLocalization('eventTitle', eventTitle, this.dictionary.calendarEventResizeEnd);
             return  this.replacePlaceolderLocalization('endDate', endDate, s1);
         },
@@ -397,7 +403,14 @@
         // errors in cases where lodash is loaded by a script tag and not intended
         // as an AMD module. See http://requirejs.org/docs/errors.html#mismatch for
         // more details.
-        root.localResource = localResource;
+        // Export for a browser or Rhino.
+        if (root.appMeta) {
+            root.appMeta.localResource = new localResource();
+            root.appMeta.LocalResource = localResource;
+        }
+        else {
+            root.localResource = localResource;
+        }
 
         // Define as an anonymous module so, through path mapping, it can be
         // referenced as the "underscore" module.
@@ -420,15 +433,16 @@
     else {
         // Export for a browser or Rhino.
         if (root.appMeta){
-            root.appMeta.localResource = localResource;
+            root.appMeta.localResource = new localResource();
+            root.appMeta.LocalResource = localResource;
         }
         else {
-            root.metaModel=localResource;
+            root.localResource = localResource;
         }
     }
 
 }.call(this,
-    (typeof appMeta === 'undefined') ? null : appMeta,
+    (typeof appMeta === 'undefined') ? undefined : appMeta,
     (typeof _ === 'undefined') ? require('lodash') : _,
     (typeof $ === 'undefined') ? undefined : $
 ) );

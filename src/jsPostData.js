@@ -542,8 +542,8 @@ SinglePostData.prototype.physicalPostBatch = function(conn, optimisticLocking){
 
   if (that.security) {
     changedRows.forEach(r => {
-      if (that.security.canPost(r.row, that.environment)) {
-        def.reject("Operation on table "+r.table.name+" is forbidden");
+      if (!that.security.canPost(r, that.environment)) {
+        def.reject("Operation on table "+r.getRow().table.name+" is forbidden");
         failed=true;
       }
     });
@@ -800,6 +800,8 @@ PostData.prototype.setAsInnerPoster = function (){
  * @param {boolean} canIgnore
  */
 function BasicMessage(msg,canIgnore){
+  msg = msg.stack || msg.message || msg;
+
   /**
    * @property {boolean} canIgnore
    */

@@ -29,11 +29,11 @@ const mySqlDriver = require("../../src/jsMySqlDriver");
  *    "pwd": "db password"
  *  }
  */
-let configName = path.join('test','data','GetData', 'db.json');
+let configName = path.join('test', 'dbMySql.json');
 let dbConfig;
 if (process.env.TRAVIS){
     dbConfig = { "server": "127.0.0.1",
-        "dbName": "test",
+        "database": "test",
         "user": "root",
         "pwd": ""
     };
@@ -57,7 +57,7 @@ let good = {
     useTrustedConnection: false,
     user: dbConfig.user,
     pwd: dbConfig.pwd,
-    database: dbConfig.dbName,
+    database: dbConfig.database,
     sqlModule: 'jsMySqlDriver'
 };
 

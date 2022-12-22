@@ -21,19 +21,24 @@ module.exports = function(config) {
         // testing framework to use (jasmine/mocha/qunit/...)
         frameworks: ['jasmine','browserify'],
         preprocessors: {
-            'node_modules/jsDataSet/src/jsDataSet.js': [ 'browserify' ],
-            'node_modules/jsDataQuery/src/jsDataQuery.js': [ 'browserify' ],
-            'test/spece2e/*.js': [ 'browserify' ]
+            // 'node_modules/jsDataSet/src/jsDataSet.js': [ 'browserify' ],
+            // 'node_modules/jsDataQuery/src/jsDataQuery.js': [ 'browserify' ],
+            //'test/spece2e/*.js': [ 'browserify' ]
         },
         // list of files / patterns to load in the browser
         files: [
             'node_modules/lodash/lodash.js',
-            'node_modules/jsDataSet/src/jsDataSet.js',
-            'node_modules/jsDataQuery/src/jsDataQuery.js',
+            'client/components/metadata/jsDataQuery.js',
+            'client/components/metadata/jsDataSet.js',
             'node_modules/jquery/dist/jquery.js',
             'test/spece2e/dummy.spec.js',
             'test/spece2e/rest-api.spec.js',
         ],
+
+        browserify: {
+            debug: true,
+            transform: [ 'brfs' ]
+        },
 
         // list of files / patterns to exclude
         exclude: [

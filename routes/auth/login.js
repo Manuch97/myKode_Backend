@@ -40,6 +40,7 @@ async function login(req,res,next){
 
 /* solo per test veloce su ambiente di test karma + jquery*/
 router.get('/dummy', (req,res,next) => {
+    console.log(req);
     return res.status(200).json({result: 'ok'});
 });
 

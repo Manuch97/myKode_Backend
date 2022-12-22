@@ -45,7 +45,7 @@ function generateHash(password,salt,iterations){
     if (iterations<1)return  null;
     if (salt.length < 8) return null;
 
-    return crypto.pbkdf2Sync(new Buffer(password), salt, iterations, 256, 'sha1');
+    return crypto.pbkdf2Sync(Buffer.from(password), salt, iterations, 256, 'sha1');
 }
 
 /**

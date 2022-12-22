@@ -5,7 +5,7 @@
  * @description
  * Manages the events communication
  */
-(function(logtypeEnum, logger, _, Deferred) {
+(function(logtypeEnum, logger, _, Deferred,when) {
 
     /** Detect free variable `global` from Node.js. */
     let freeGlobal = typeof global === 'object' && global && global.Object === Object && global;
@@ -141,7 +141,7 @@
         trigger: function (sender, args) {
             if (this.subscribers.length === 0) return Deferred().resolve(true);
 
-            let chain = Deferred.when();
+            let chain = when();
 
             _.forEach(_.clone(this.subscribers), function (sub) {
                 chain  = chain.then(function () {
@@ -162,7 +162,6 @@
 
         /* {{Event}} */
         this.events = {};
-        return this;
     }
 
     EventManager.prototype = {
@@ -393,7 +392,7 @@
          */
         stabilize: function(dontWaitForInstability) {
             if (this.nesting === 0 && dontWaitForInstability) {
-                logger.log(logtypeEnum.INFO, "stabilize invoked: immediatly stabilized");
+                logger.log(logtypeEnum.INFO, "stabilize invoked: immediately stabilized");
                 return Deferred().resolve();
             }
             logger.log(logtypeEnum.INFO, this.nesting > 0 ? "stabilize invoked:  actually unstable:" + this.nesting : "stabilize invoked:  waiting for unstable");
@@ -463,7 +462,7 @@
     };
     const stabilizer = new Stabilizer();
     const myDeferred = _.bind(stabilizer.Deferred, stabilizer);
-    myDeferred.when = _.bind(Deferred.when, stabilizer);
+    myDeferred.when = _.bind(when, stabilizer);
 
 
     const toExport = {
@@ -479,12 +478,19 @@
     // Some AMD build optimizers like r.js check for condition patterns like the following:
     //noinspection JSUnresolvedVariable
     if (freeExports && freeModule) {
-        if (moduleExports) { // Export for Node.js or RingoJS.
-            (freeModule.exports = toExport).EventManager = toExport;
+        // Export for a browser or Rhino.
+        if (root.appMeta) {
+            _.extend(root.appMeta, toExport);
         }
-        else { // Export for Narwhal or Rhino -require.
-            freeExports.EventManager = toExport;
+        else {
+            if (moduleExports) { // Export for Node.js or RingoJS.
+                (freeModule.exports = toExport).EventManager = toExport;
+            }
+            else { // Export for Narwhal or Rhino -require.
+                freeExports.EventManager = toExport;
+            }
         }
+
     }
     else {
         // Export for a browser or Rhino.
@@ -500,5 +506,6 @@
 }(  (typeof appMeta === 'undefined') ? require('./Logger').logTypeEnum : appMeta.logTypeEnum,
     (typeof appMeta === 'undefined') ? require('./Logger').logger : appMeta.logger,
     (typeof _ === 'undefined') ? require('lodash') : _,
-    (typeof $ === 'undefined')? require('JQDeferred'): $.Deferred
+    (typeof $ === 'undefined') ? require('JQDeferred') : $.Deferred,
+    (typeof $ === 'undefined') ? require('JQDeferred').when : $.when
 ));

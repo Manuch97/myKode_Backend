@@ -95,13 +95,13 @@ Security.prototype= {
      */
     getConditions: function (tableName, op,env){
         /*{object []} */
-        let idgroups= env.usr.usergrouplist;
+        let idgroups= env.usr("usergrouplist");
         let key = tableName+'#'+op+'#'+idgroups.join('§');
         if (this.filteredConditions[key]!==undefined){
             return this.filteredConditions[key];
         }
         let conditions= _.filter(this.getTableOpConditions(tableName,op),
-                    Q.or(Q.isnull("idcustomgroup"),Q.isIn("idcustomgroup",idgroups))
+                    Q.or(Q.isNull("idcustomgroup"),Q.isIn("idcustomgroup",idgroups))
                 );
         this.filteredConditions[key]=conditions;
         return  conditions;
@@ -117,7 +117,7 @@ Security.prototype= {
  * @return {sqlFun}
  */
 Security.prototype.securityCondition= function (tableName, opKind, environment){
-    let conditions= this.getConditions(tableName,opKind,environment.sys("idcustomgroup"));
+    let conditions= this.getConditions(tableName,opKind,environment);
     let thereIsAnyCondition= false;
     let clauses=[];
     let defaultIsDeny ;

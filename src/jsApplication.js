@@ -93,6 +93,7 @@ JsApplication.prototype = {
      * Attaches a release event on close/finish of the request (the one which fires first)
      * releases the pool connection after a request has been processed
      * @param req
+     * @param res
      * @param ctx
      */
     releaseConnection: function(req, res, ctx) {
@@ -118,7 +119,7 @@ JsApplication.prototype = {
     },
 
     createTestSession: function(req,res,next){
-        let token = req[tokenConfig.options.requestProperty]; //default is auth
+        let token = Token.prototype.getFromRequest(req);
         if (token) {
             return next();
         }
@@ -170,8 +171,14 @@ JsApplication.prototype = {
                 createServicesRoutes(this.router, Path.join("routes",folderName),folderName);
             });
 
+        //The "metadata" path is mapped into "meta"
+        this.expressApplication.use('/client/meta', Express.static('metadata'));
+        this.expressApplication.use('/client/pages', Express.static('pages'));
+
         this.expressApplication.use(this.router);
         this.expressApplication.use(this.error.bind(this));
+
+
 
         let connPool;
         let def = Deferred();
@@ -189,8 +196,6 @@ JsApplication.prototype = {
             });
         return  def.promise();
     },
-
-
 
     /**
      * returns an open connection to db
@@ -262,10 +267,7 @@ JsApplication.prototype = {
 
     getAnonymousEnvironment:function(identity) {
         // TODO create an anonymous environment
-        let e= new Environment(identity);
-
-
-        return e;
+        return new Environment(identity);
     },
 
     /**

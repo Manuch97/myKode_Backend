@@ -28,16 +28,16 @@ const mySqlDriver = require("../../src/jsMySqlDriver");
  * *****************************************************************************************
  * It's necessary, before start running the test, to create a file templated like:
  *  { "server": "db server address",
- *    "dbName": "database name",  //this must be an EMPTY database
+ *    "database": "database name",  //this must be an EMPTY database
  *    "user": "db user",
  *    "pwd": "db password"
  *  }
  */
-const configName = path.join('test','data','DbList', 'dbMySql.json');
+const configName = path.join('test', 'dbMySql.json');
 let dbConfig;
 if (process.env.TRAVIS){
     dbConfig = { "server": "127.0.0.1",
-        "dbName": "test",
+        "database": "test",
         "user": "root",
         "pwd": ""
     };
@@ -59,7 +59,7 @@ const good = {
     useTrustedConnection: false,
     user: dbConfig.user,
     pwd: dbConfig.pwd,
-    database: dbConfig.dbName,
+    database: dbConfig.database,
     sqlModule: 'jsMySqlDriver'
 };
 

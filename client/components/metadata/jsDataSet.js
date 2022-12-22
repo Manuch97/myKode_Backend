@@ -53,7 +53,17 @@
         'number': 'number',
         'date': 'date',
         'bool': 'bool',
-        'unknown': 'unknown'
+        'unknown': 'unknown',
+        "Char":"Char",
+        "Byte":"Byte",
+        "Decimal": "Decimal",
+        "Double": "Double",
+        "Float": "Float",
+        "Single": "Single",
+        "Int64": "Int64",
+        "Int32": "Int32",
+        "Int16": "Int16",
+        "DateTime": "DateTime"
     };
 
 

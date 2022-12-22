@@ -18,12 +18,13 @@ let dbConfig;
 if (process.env.TRAVIS) {
     dbConfig = {
         "server": "127.0.0.1",
-        "dbName": "test",
+        "database": "test",
         "user": "sa",
-        "pwd": "YourStrong!Passw0rd"
+        "pwd": "YourStrong!Passw0rd",
+        "test":false
     };
 } else {
-    dbConfig = JSON.parse(fs.readFileSync(configName).toString());
+    dbConfig = JSON.parse(fs.readFileSync(configName).toString())['test_sqlServer_anonymous'];
 }
 
 const sqlServerDriver = require('../../src/jsSqlServerDriver'),
@@ -37,22 +38,19 @@ const sqlServerDriver = require('../../src/jsSqlServerDriver'),
 
 describe('API with anonimous connection',
     function () {
-
         const timeout = 500000;
-
         let sqlConn;
-
-        function getConnection(dbCode) {
-            let options = dbConfig[dbCode];
+        function getConnection() {
+            let options = dbConfig;
             if (options) {
-                options.dbCode = dbCode;
+                options.dbCode = "test_sqlServer_anonymous";
                 return new sqlServerDriver.Connection(options);
             }
             return undefined;
         }
 
         beforeEach(function (done) {
-            sqlConn = getConnection('test_sqlServer_anonymous');
+            sqlConn = getConnection();
             sqlConn.open().done(function () {
                 done();
             }).fail(function (err) {

@@ -201,7 +201,7 @@ async function sanitizeDsForAttach(ds,ctx) {
                 let attach = r[cname];
                 // bonifico i byte[]. non li invio al client. ma informo al client tramite -1 che c'� un attach
                 if (attach !== null){
-                    var buf = new Buffer(4);
+                    var buf = Buffer.alloc(4);
                     buf.writeInt32LE(-1, 0); /// or BE??
                     r[cname]= buf;
                     if (table.columns[getAttachColumn(cname)]){
@@ -220,7 +220,7 @@ async function sanitizeDsForAttach(ds,ctx) {
  * @param {int} n
  */
 function intToByte(n){
-    var buf = new Buffer(4);
+    var buf = Buffer.alloc(4);
     buf.writeInt32LE(n, 0);
     return buf;
 }

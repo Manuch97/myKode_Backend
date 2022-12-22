@@ -18,7 +18,7 @@ const $dq = require('./../../client/components/metadata/jsDataQuery'),
  * *****************************************************************************************
  * It's necessary, before start running the test, to create a file templated like:
  *  { "server": "db server address",
- *    "dbName": "database name",  //this must be an EMPTY database
+ *    "database": "database name",  //this must be an EMPTY database
  *    "user": "db user",
  *    "pwd": "db password"
  *  }
@@ -26,13 +26,13 @@ const $dq = require('./../../client/components/metadata/jsDataQuery'),
 //PUT THE  FILENAME OF YOUR FILE HERE:
 
 
-const configName = 'test/data/jsSqlServerDriver/db.json';
+const configName = path.join('test', 'dbSqlServer.json');
     //path.join('test','data', 'jsSqlServerDriver', 'dbSqlServer.json');
 
 let dbConfig;
 if (process.env.TRAVIS){
     dbConfig = { "server": "127.0.0.1",
-        "dbName": "test",
+        "database": "test",
         "user": "sa",
         "pwd": "YourStrong!Passw0rd"
     };
@@ -101,15 +101,15 @@ describe('sqlServerDriver ', function () {
             masterConnTemp = new sqlServerDriver.Connection(options);
             masterConnTemp.open()
                 .then(function () {
-                    console.log("creating db "+dbName);
+                    // console.log("creating db "+dbName);
                     return masterConnTemp.run("drop database IF EXISTS "+dbName+";\n\rcreate database "+dbName);
                 })
                 .then(function(){
-                    console.log("connecting to db");
+                    // console.log("connecting to db");
                     sqlConn = getConnection('good');
                     sqlConn.open()
                         .then((rr)=> {
-                            console.log("db connected");
+                            // console.log("db connected");
                             sqlOpen.resolve(rr);
                         })
                         .fail(rr=> {
@@ -122,14 +122,14 @@ describe('sqlServerDriver ', function () {
                 });
 
             sqlOpen.then(()=>{
-                console.log("db connected, running setup");
+                // console.log("db connected, running setup");
                 sqlConn.run(fs.readFileSync(path.join('test', 'data', 'sqlServer', 'Setup.sql')).toString())
                     .then(()=>{
-                        console.log("setup runned, closing");
+                        // console.log("setup runned, closing");
                         return sqlConn.close();
                     })
                     .then(()=>{
-                        console.log("closed connection 1");
+                        // console.log("closed connection 1");
                         masterConn = masterConnTemp;
                         done();
                     })
@@ -145,7 +145,7 @@ describe('sqlServerDriver ', function () {
     afterAll(function (done){
         console.log("running Afterall");
         if (!masterConn) {
-            console.log("no masterConn, quitting afterAll");
+            // console.log("no masterConn, quitting afterAll");
             done();
             return;
         }
@@ -155,7 +155,7 @@ describe('sqlServerDriver ', function () {
                 console.log("DB Dropped");
                 masterConn.close()
                     .then(()=>{
-                        console.log("closing connection 0");
+                        // console.log("closing connection 0");
                         done();
                     });
             }, (err)=>{
@@ -168,7 +168,6 @@ describe('sqlServerDriver ', function () {
 
     let canExecute=false;
     beforeEach(function (done) {
-        console.log("running beforeEach");
         canExecute=false;
         if (!masterConn){
             console.log("no Master Conn");
@@ -177,7 +176,6 @@ describe('sqlServerDriver ', function () {
         }
         sqlConn = getConnection('good');
         sqlConn.open().then(function () {
-            console.log("opened connection 2");
             canExecute=true;
             done();
         }).fail(function (err) {
@@ -187,11 +185,9 @@ describe('sqlServerDriver ', function () {
     }, 30000);
 
     afterEach(function (done) {
-        console.log("running afterEach");
         if (sqlConn) {
             sqlConn.destroy()
                 .then(()=>{
-                    console.log("closed connection 2");
                     done();
                 });
         }
@@ -765,7 +761,7 @@ describe('sqlServerDriver ', function () {
                     expect(r).toBeDefined();
                     if (r.row) {
                         nResp += 1;
-                         let buff = new Buffer(r.row[9],"base64");
+                         let buff = Buffer.from(r.row[9],"base64");
                          //let text = buff.toString('utf-8');
                          fs.writeFileSync('decifraBase64.txt', buff);
                          //if (nResp===1) console.log(buff);

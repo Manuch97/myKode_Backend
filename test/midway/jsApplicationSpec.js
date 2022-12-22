@@ -4,10 +4,10 @@
 console.log("running ApplicationSpec");
 
 
-
-
 /*jshint -W069*/
 /*jshint -W083*/
+
+const fetch = require( 'node-fetch');
 
 const path = require("path");
 const FormData = require('form-data');
@@ -26,12 +26,12 @@ let dbConfig;
 if (process.env.TRAVIS) {
     dbConfig = {
         "server": "127.0.0.1",
-        "dbName": "test",
+        "database": "test",
         "user": "sa",
         "pwd": "YourStrong!Passw0rd"
     };
 } else {
-    dbConfig = JSON.parse(fs.readFileSync(configName).toString());
+    dbConfig = JSON.parse(fs.readFileSync(configName).toString())['test_sqlServer'];
 }
 
 const uploadPath = 'Uploads/';
@@ -72,100 +72,103 @@ describe('js prerequisites', function () {
 });
 
 describe('rest api',
-    function () {
+    function (){
 
-        const timeout = 30000;
+        const timeout = 60000;
 
         jasmine.DEFAULT_TIMEOUT_INTERVAL = timeout;
 
         let sqlConn;
 
-        function getConnection(dbCode) {
-            let options = dbConfig[dbCode];
-            if (options) {
-                options.dbCode = dbCode;
+        function getConnection(){
+            let options = dbConfig;
+            if (options){
+                options.dbCode = "test_sqlServer";
                 return new sqlServerDriver.Connection(options);
             }
             return undefined;
         }
 
 
-
-        beforeEach(function (done) {
-            sqlConn = getConnection('test_sqlServer');
-            sqlConn.open().done(function () {
-                //console.log("Connection opened");
+        beforeEach(function (done){
+            sqlConn = getConnection();
+            sqlConn.open().done(function (){
                 done();
-            }).fail(function (err) {
+            }).fail(function (err){
                 console.log('Error during opening: ' + err);
                 throw err;
             });
         });
 
-        afterEach(function (done) {
-            if (sqlConn) {
-                //console.log("Connection closed");
+        afterEach(function (done){
+            if (sqlConn){
                 sqlConn.destroy()
-                    .then(()=>done());
+                .then(
+                    () => done());
+                sqlConn = null;
+                return;
             }
+            console.log("Connection was ALREADY closed");
             sqlConn = null;
-        },timeout);
+            done();
+        }, timeout);
 
         //describe('setup dataBase', function () {
-        it('should run the setup script', function (done) {
-                //console.log("Running script");
-                sqlConn.run(fs.readFileSync('test/data/jsApplication/setup.sql').toString())
-                    .done(function () {
-                        //console.log("db created");
-                        expect(true).toBeTruthy();
-                        done();
-                        return;
-                    })
-                    .fail(function (res) {
-                        console.log(res);
-                        expect(res).toBeUndefined();
-                        done();
-                    });
-            },60000);
+        it('should run the setup script', function (done){
+            //console.log("Running script");
+            sqlConn.run(fs.readFileSync('test/data/jsApplication/setup.sql').toString())
+            .done(function (){
+                //console.log("db created");
+                expect(true).toBeTruthy();
+                done();
+            })
+            .fail(function (res){
+                console.log(res);
+                expect(res).toBeUndefined();
+                done();
+            });
+        });
 
         //});
 
         it("select ws: query on customusergroup returns DataTable",
-            function (done) {
+            async function (){
                 let filter = q.or(q.eq('idcustomuser', 'AZZURRO'),
                     q.eq('idcustomuser', 'BIANCO'),
                     q.eq('idcustomuser', 'NERO'));
                 let objser = q.toObject(filter);
                 let filterSerialized = JSON.stringify(objser);
 
-                request({
-                    url: 'http://localhost:3000/test/data/select',
-                    method: 'POST',
-                    form: {
-                        tableName: 'customusergroup',
-                        columnList: "idcustomgroup,idcustomuser",
-                        top: 10,
-                        filter: filterSerialized
-                    }
-                }, function (error, response, body) {
-                    if (error) {
-                        console.log(error);
-                        expect(error).toBe(undefined);
-                        done();
-                        return;
-                    }
+                try{
+                    const params = new URLSearchParams();
+                    params.append('tableName', 'customusergroup');
+                    params.append('columnList',  "idcustomgroup,idcustomuser");
+                    params.append('top', '10');
+                    params.append('filter', filterSerialized);
+
+                    let response = await fetch(
+                        'http://localhost:3000/test/data/select',
+                        {
+                            method: 'POST',
+                            body: params
+                        });
                     expect(response).toBeDefined();
-                    const dtObj = JSON.parse(body);
+                    let dtObj = await response.json();
+                    //const dtObj = JSON.parse(body);
                     const dt = new jsDataSet.DataTable(dtObj.name);
                     dt.deSerialize(dtObj, true);
                     expect(dt.name).toBe('customusergroup');
                     expect(dt.rows.length).toBe(3);
-                    done();
-                });
-            }, timeout);
+                }
+                catch (error){
+                    expect(error).toBeUndefined();
+                }
+
+            });
+
 
         it("selectCount ws: returns the number of record of table",
-            function (done) {
+            function (done){
                 let filter = q.or(q.eq('idcustomuser', 'AZZURRO'), q.eq('idcustomuser', 'BIANCO'), q.eq('idcustomuser', 'NERO'));
                 let objser = q.toObject(filter);
                 let filterSerialized = JSON.stringify(objser);
@@ -177,8 +180,8 @@ describe('rest api',
                         tableName: 'customusergroup',
                         filter: filterSerialized
                     }
-                }, function (error, response, body) {
-                    if (error) {
+                }, function (error, response, body){
+                    if (error){
                         console.log(error);
                         expect(error).toBe(undefined);
                         done();
@@ -194,7 +197,7 @@ describe('rest api',
             }, timeout);
 
         it("multirunselect ws: multi queries on customusergroup + customuser returns DataTable",
-            function (done) {
+            function (done){
                 const ds = new jsDataSet.DataSet("temp");
                 const t1name = 'customuser';
                 const t2name = 'customusergroup';
@@ -224,8 +227,8 @@ describe('rest api',
                     form: {
                         selBuilderArr: selBuilderArrPrm
                     }
-                }, function (error, response, body) {
-                    if (error) {
+                }, function (error, response, body){
+                    if (error){
                         console.log(error);
                         expect(true).toBe(false);
                         done();
@@ -243,7 +246,7 @@ describe('rest api',
             }, timeout);
 
         it("getDataSet ws: dataset customuser_test returned",
-            function (done) {
+            function (done){
                 request({
                     url: 'http://localhost:3000/test/data/getDataSet',
                     method: 'POST',
@@ -251,8 +254,8 @@ describe('rest api',
                         tableName: 'customuser',
                         editType: 'test'
                     }
-                }, function (error, response, body) {
-                    if (error) {
+                }, function (error, response, body){
+                    if (error){
                         console.log(error);
                         expect(true).toBe(false);
                         done();
@@ -274,7 +277,7 @@ describe('rest api',
             }, timeout);
 
         it("getPagedTable ws: returns customusergroup paged datatable",
-            function (done) {
+            function (done){
                 let filter = q.or(q.eq('idcustomuser', 'AZZURRO'),
                     q.eq('idcustomuser', 'BIANCO'),
                     q.eq('idcustomuser', 'NERO'));
@@ -293,8 +296,8 @@ describe('rest api',
                         listType: listType,
                         sortby: null
                     }
-                }, function (error, response, body) {
-                    if (error) {
+                }, function (error, response, body){
+                    if (error){
                         console.log(error);
                         expect(true).toBe(false);
                         done();
@@ -315,7 +318,7 @@ describe('rest api',
             }, timeout);
 
         it("getDsByRowKey: return dataset populated based on row",
-            function (done) {
+            function (done){
                 // 1. recupero dataset vuoto
                 request({
                     url: 'http://localhost:3000/test/data/getDataSet',
@@ -324,7 +327,7 @@ describe('rest api',
                         tableName: 'customuser',
                         editType: 'test'
                     }
-                }, function (error, response, body) {
+                }, function (error, response, body){
 
                     expect(response).toBeDefined();
                     const objParsed = JSON.parse(body);
@@ -348,9 +351,9 @@ describe('rest api',
                             editType: 'test',
                             filter: filterSerialized
                         }
-                    }, function (error, response, body) {
+                    }, function (error, response, body){
 
-                        if (error) {
+                        if (error){
                             console.log(error);
                             expect(true).toBe(false);
                             done();
@@ -373,7 +376,7 @@ describe('rest api',
             }, timeout);
 
         it("doGet empty ds AND onlyPeripherals: false",
-            function (done) {
+            function (done){
 
                 const idcustomuser = 'AZZURRO';
 
@@ -385,7 +388,7 @@ describe('rest api',
                         tableName: 'customuser',
                         editType: 'test'
                     }
-                }, function (error, response, body) {
+                }, function (error, response, body){
 
                     const objParsed = JSON.parse(body);
                     const ds = new jsDataSet.DataSet(objParsed.name);
@@ -409,9 +412,9 @@ describe('rest api',
                             filter: filterSerialized,
                             onlyPeripherals: false
                         }
-                    }, function (error, response, body) {
+                    }, function (error, response, body){
 
-                        if (error) {
+                        if (error){
                             console.log(error);
                             expect(true).toBe(false);
                             done();
@@ -432,7 +435,7 @@ describe('rest api',
             }, timeout);
 
         it("doGet empty ds AND onlyPeripherals: true",
-            function (done) {
+            function (done){
 
                 const idcustomuser = 'AZZURRO';
 
@@ -444,7 +447,7 @@ describe('rest api',
                         tableName: 'customuser',
                         editType: 'test'
                     }
-                }, function (error, response, body) {
+                }, function (error, response, body){
 
                     const objParsed = JSON.parse(body);
                     const ds = new jsDataSet.DataSet(objParsed.name);
@@ -468,9 +471,9 @@ describe('rest api',
                             filter: filterSerialized,
                             onlyPeripherals: true
                         }
-                    }, function (error, response, body) {
+                    }, function (error, response, body){
 
-                        if (error) {
+                        if (error){
                             console.log(error);
                             expect(true).toBe(false);
                             done();
@@ -489,7 +492,7 @@ describe('rest api',
             }, timeout);
 
         it("setUsrEnv ws: set usr-env test variable",
-            function (done) {
+            function (done){
                 request({
                     url: 'http://localhost:3000/test/data/setUsrEnv',
                     method: 'POST',
@@ -497,8 +500,8 @@ describe('rest api',
                         key: 'test_key',
                         value: 'test_value'
                     }
-                }, function (error, response, body) {
-                    if (error) {
+                }, function (error, response, body){
+                    if (error){
                         console.log(error);
                         console.log(body.parsed.error);
                         expect(true).toBe(false);
@@ -513,7 +516,7 @@ describe('rest api',
             }, timeout);
 
         it("doReadValue ws: read and get a value in a table",
-            function (done) {
+            function (done){
                 let filter = q.eq('idcustomuser', 'AZZURRO');
                 let objser = q.toObject(filter);
                 let filterSerialized = JSON.stringify(objser);
@@ -527,8 +530,8 @@ describe('rest api',
                         filter: filterSerialized,
                         orderby: null
                     }
-                }, function (error, response, body) {
-                    if (error) {
+                }, function (error, response, body){
+                    if (error){
                         console.log(error);
                         expect(true).toBe(false);
                         done();
@@ -542,7 +545,7 @@ describe('rest api',
             }, timeout);
 
         it("changeRole ws: re-calculates environment",
-            function (done) {
+            function (done){
                 const idflowchart = '210001';
                 const ndetail = '1';
                 request({
@@ -552,8 +555,8 @@ describe('rest api',
                         idflowchart: idflowchart,
                         ndetail: ndetail,
                     }
-                }, function (error, response, body) {
-                    if (error) {
+                }, function (error, response, body){
+                    if (error){
                         console.log(error);
                         expect(true).toBe(false);
                         done();
@@ -568,14 +571,14 @@ describe('rest api',
             }, timeout);
 
         it("createTableByName ws: create table, with * options, all columns",
-            function (done) {
+            function (done){
                 const tableName = 'customuser';
                 const columnList = '*';
                 request({
                     url: `http://localhost:3000/test/data/createTableByName?tableName=${tableName}&columnList=${columnList}`,
                     method: 'GET'
-                }, function (error, response, body) {
-                    if (error) {
+                }, function (error, response, body){
+                    if (error){
                         console.log(error);
                         expect(true).toBe(false);
                         done();
@@ -592,14 +595,14 @@ describe('rest api',
             }, timeout);
 
         it("createTableByName ws: create table with 2 column",
-            function (done) {
+            function (done){
                 const tableName = 'customuser';
                 const columnList = 'idcustomuser,username';
                 request({
                     url: `http://localhost:3000/test/data/createTableByName?tableName=${tableName}&columnList=${columnList}`,
                     method: 'GET'
-                }, function (error, response, body) {
-                    if (error) {
+                }, function (error, response, body){
+                    if (error){
                         console.log(error);
                         expect(true).toBe(false);
                         done();
@@ -616,7 +619,7 @@ describe('rest api',
             }, timeout);
 
         it("saveDataSet ws: save dataset table customusergroup without rules ok",
-            function (done) {
+            function (done){
                 const tableName = 'customuser';
                 const editType = 'test';
                 const idcustomgroup = 'ORGANIGRAMMA';
@@ -626,12 +629,14 @@ describe('rest api',
                 request({
                     url: 'http://localhost:3000/test/data/getDataSet',
                     method: 'POST',
+                    headers: {
+                        "language": "it"
+                    },
                     form: {
                         tableName: tableName,
                         editType: editType
                     }
-                }, function (error, response, body) {
-
+                }, function (error, response, body){
                     const objParsed = JSON.parse(body);
                     const ds = new jsDataSet.DataSet(objParsed.name);
                     ds.deSerialize(objParsed, true);
@@ -646,12 +651,15 @@ describe('rest api',
                     request({
                         url: 'http://localhost:3000/test/data/getDsByRowKey',
                         method: 'POST',
+                        headers: {
+                            "language": "it"
+                        },
                         form: {
                             tableName: tableName,
                             editType: editType,
                             filter: filterSerialized
                         }
-                    }, function (error, response, body) {
+                    }, function (error, response, body){
 
                         const objParsed = JSON.parse(body);
                         const ds = new jsDataSet.DataSet(objParsed.name);
@@ -672,6 +680,9 @@ describe('rest api',
                         const dsSerialized = JSON.stringify(objser);
                         request({
                             url: 'http://localhost:3000/test/data/saveDataSet',
+                            headers: {
+                                "language": "it"
+                            },
                             method: 'POST',
                             form: {
                                 tableName: tableName,
@@ -679,9 +690,9 @@ describe('rest api',
                                 filter: filterSerialized,
                                 ds: dsSerialized
                             }
-                        }, function (error, response, body) {
+                        }, function (error, response, body){
 
-                            if (error) {
+                            if (error){
                                 console.log(error);
                                 expect(true).toBe(false);
                                 done();
@@ -690,13 +701,14 @@ describe('rest api',
                             expect(response).toBeDefined();
                             const objParsed = JSON.parse(body);
 
-                            const dsObj = objParsed.dataset;
+                            //const dsObj = JSON.parse(objParsed.dataset);
                             const success = objParsed.success;
                             const canIgnore = objParsed.canIgnore;
                             const messages = objParsed.messages;
+                            //console.log(messages);
 
-                            const ds = new jsDataSet.DataSet(dsObj.name);
-                            ds.deSerialize(dsObj, true);
+                            const ds = new jsDataSet.DataSet(objParsed.dataset.name);
+                            ds.deSerialize(objParsed.dataset, true);
                             expect(ds.name).toBe('customuser_test');
 
                             expect(messages.length).toBe(0); //non ci sono messaggi
@@ -706,7 +718,7 @@ describe('rest api',
                             // verifico almeno 1 riga, altrimenti test non è attendibile
                             expect(tcustomusergroup.rows.length).toBeGreaterThan(0);
 
-                            _.forEach(tcustomusergroup.rows, function (r) {
+                            _.forEach(tcustomusergroup.rows, function (r){
                                 expect(r.idcustomgroup).toBe(idcustomgroup);
                             });
                             // mi aspetto che il valore sia cambiato
@@ -715,10 +727,10 @@ describe('rest api',
                         });
                     });
                 });
-            }, timeout);
+            });
 
         it("saveDataSet ws: save dataset table customuser unsucess. get 1 message POST rule",
-            function (done) {
+            function (done){
                 const tableName = 'customuser';
                 const editType = 'test';
                 const idcustomuser = 'AZZURRO';
@@ -731,7 +743,7 @@ describe('rest api',
                         tableName: tableName,
                         editType: editType
                     }
-                }, function (error, response, body) {
+                }, function (error, response, body){
 
                     const objParsed = JSON.parse(body);
                     const ds = new jsDataSet.DataSet(objParsed.name);
@@ -752,7 +764,7 @@ describe('rest api',
                             editType: editType,
                             filter: filterSerialized
                         }
-                    }, function (error, response, body) {
+                    }, function (error, response, body){
 
                         let objParsed = JSON.parse(body);
                         let ds = new jsDataSet.DataSet(objParsed.name);
@@ -780,10 +792,10 @@ describe('rest api',
                                 filter: filterSerialized,
                                 ds: dsSerialized
                             }
-                        }, function (error, response, body) {
+                        }, function (error, response, body){
                             //console.log(response);
 
-                            if (error) {
+                            if (error){
                                 console.log(error);
                                 expect(true).toBe(false);
                                 done();
@@ -812,7 +824,7 @@ describe('rest api',
                             // verifico almeno 1 riga, altrimenti test non è attendibile
                             expect(tcustomuser.rows.length).toBeGreaterThan(0);
 
-                            _.forEach(tcustomuser.rows, function (r) {
+                            _.forEach(tcustomuser.rows, function (r){
                                 expect(r.idcustomuser).toBe(idcustomuser);
                             });
                             // mi aspetto che il valore sia cambiato
@@ -825,7 +837,7 @@ describe('rest api',
         // ----> AUTH CONTROLLER
 
         it('login username and password not exists get Bad Credential',
-            function (done) {
+            function (done){
                 const userName = 'AZZURRO';
                 const password = '-------';
                 request({
@@ -836,8 +848,8 @@ describe('rest api',
                         password: password,
                         datacontabile: (new Date()).toJSON(),
                     }
-                }, function (error, response, body) {
-                    if (error) {
+                }, function (error, response, body){
+                    if (error){
                         console.log(error);
                         expect(true).toBe(false);
                         done();
@@ -850,7 +862,7 @@ describe('rest api',
             }, timeout);
 
         it('login username and wrong password get Bad Credential',
-            function (done) {
+            function (done){
                 const userName = 'AZZURRO';
                 const password = 'SEG_PSUMA';
                 request({
@@ -861,8 +873,8 @@ describe('rest api',
                         password: password,
                         datacontabile: (new Date()).toJSON(),
                     }
-                }, function (error, response, body) {
-                    if (error) {
+                }, function (error, response, body){
+                    if (error){
                         console.log(error);
                         expect(true).toBe(false);
                         done();
@@ -874,22 +886,22 @@ describe('rest api',
                 });
             }, timeout);
 
-        it ('getMeta should get Metadata',()=>{
-            GetMeta.setPath('./../../../meta/');
+        it('getMeta should get Metadata', () => {
+            GetMeta.setPath('./../../metadata/');
             let m = GetMeta.getMeta("attach");
             expect(m.name).toBe("meta_attach");
         });
 
         // ----> FILE CONTROLLER
-        it('upload file chunk less 1MB. ok',
-            function (done) {
+        it('upload file chunk less 1MB.',
+            function (done){
 
                 // simulo nome file come atteso dal backend (CONVENZIONE!)
                 const partCount = 1;
                 const totalParts = 1;
                 const fileName = 'fakeUploadTestUnder1MB.txt';
                 const separatorFileName = '$__$';
-                const guid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+                const guid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c){
                     let r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
                     return v.toString(16);
                 });
@@ -897,154 +909,117 @@ describe('rest api',
                 const filePartName = fname + ".part_" + partCount + "." + totalParts;
                 const path = 'test/data/jsApplication/' + fileName;
 
-                const formData = {
-                    file: {
-                        value: fs.createReadStream(path),
-                        options: {
-                            fileName: filePartName
-                        }
-                    }
-                };
-                // lato server il fileName è ignorato. utilizza il fileName originale e
-                //  quindi forzo il nome con la convenzione.
-                formData.file.value.path = path.replace(fileName, filePartName);
+                let formData = new FormData();
+                formData.append("file", fs.createReadStream(path), filePartName);
 
-                request({
-                    url: `http://localhost:3000/test/file/uploadchunk`,
-                    method: 'POST',
-                    headers: {
-                        "Content-Type": "multipart/form-data"
-                    },
-                    formData: formData
-                }, async function (error, response, body) {
-                    if (error) {
-                        console.log(error);
-                        expect(true).toBe(false);
-                        done.fail(error);
-                        return;
-                    }
-
-                    //console.log(body);
+                fetch('http://localhost:3000/test/file/uploadchunk',
+                        {method: 'POST', body: formData})
+                .then((response)=> {
+                    //console.log(response);
                     expect(response).toBeDefined();
-                    const objParsed = JSON.parse(body);
+                    return response.json();
+                })
+                .then((objParsed)=>{
+                        const ds = new jsDataSet.DataSet(objParsed.name);
+                        ds.deSerialize(objParsed, true);
+                        //console.log(ds.tables.attach);
+                        //console.log(ds.tables.attach.rows);
+                        expect(ds.name).toBe('attach_default');
+                        expect(ds.tables.attach.rows.length).toBe(1);
+                        expect(ds.tables.attach.rows[0].idattach).toBe(1);
+                        expect(ds.tables.attach.rows[0].filename.indexOf(fileName)).toBeGreaterThan(0);
+                        expect(ds.tables.attach.rows[0].size).toBe(56);
 
-                    const ds = new jsDataSet.DataSet(objParsed.name);
-                    ds.deSerialize(objParsed, true);
-                    //console.log(ds.tables.attach);
-                    //console.log(ds.tables.attach.rows);
-                    expect(ds.name).toBe('attach_default');
-                    expect(ds.tables.attach.rows.length).toBe(1);
-                    expect(ds.tables.attach.rows[0].idattach).toBe(1);
-                    expect(ds.tables.attach.rows[0].filename.indexOf(fileName)).toBeGreaterThan(0);
-                    expect(ds.tables.attach.rows[0].size).toBe(56);
-
-                    // verifico ci sia il file
-                    let allFiles = await readdir(uploadPath);
-                    let files = _.filter(allFiles, fname => fname.indexOf(fileName) > 0);
-                    expect(files.length).toBe(1);
-                    done();
+                        // verifico ci sia il file
+                        let allFiles = fs.readdirSync(uploadPath);
+                        let files = _.filter(allFiles, fname => fname.indexOf(fileName) > 0);
+                        expect(files.length).toBe(1);
+                        done();
+                },
+                (error)=>{
+                    expect(true).toBe(false);
+                    done.fail(error);
+                    return;
                 });
+
+
             });
 
+
         it('upload file with 2 chunk. Chunk are merged in single file on backend',
-           function (done) {
+           async function (){
 
-              // simulo nome file come atteso dal backend (CONVENZIONE!)
-              let partCount = 1;
-              const totalParts = 2;
-              const chunkName = 'fakeUploadTestChunk.txt';
-              const chunk1 = 'fakeUploadTestChunk1.txt';
-              const chunk2 = 'fakeUploadTestChunk2.txt';
-              const separatorFileName = '$__$';
-              const guid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
-                  let r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
-                  return v.toString(16);
-              });
-              const fname = guid + separatorFileName + chunkName;
-              let filePartName = fname + ".part_" + partCount + "." + totalParts;
-              let path = 'test/data/jsApplication/' + chunk1;
+               // simulo nome file come atteso dal backend (CONVENZIONE!)
+               let partCount = 1;
+               const totalParts = 2;
+               const chunkName = 'fakeUploadTestChunk.txt';
+               const chunk1 = 'fakeUploadTestChunk1.txt';
+               const chunk2 = 'fakeUploadTestChunk2.txt';
+               const separatorFileName = '$__$';
+               const guid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c){
+                   let r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+                   return v.toString(16);
+               });
+               const fname = guid + separatorFileName + chunkName;
+               let filePartName = fname + ".part_" + partCount + "." + totalParts;
+               let path = 'test/data/jsApplication/' + chunk1;
 
-              const formData = {
-                  file: {
-                      value: fs.createReadStream(path),
-                      options: {
-                          fileName: filePartName
-                      }
-                  }
-              };
-              // lato server il fileName è "skyppato". utilizza il fileName orginale e quindi forzo il nome con la convenzione.
-              formData.file.value.path = path.replace(chunk1, filePartName);
+               let formData = new FormData();
+               formData.append("file", fs.createReadStream(path), filePartName);
 
-              request({
-                  url: `http://localhost:3000/test/file/uploadchunk`,
-                  method: 'POST',
-                  headers: {
-                      "Content-Type": "multipart/form-data"
-                  },
-                  formData: formData
-              }, async function (error, response, body) {
+               //formData.file.value.path = path.replace(chunk1, filePartName);
 
-                  if (error) {
-                      console.log(error);
-                      expect(true).toBe(false);
-                      done();
-                      return;
-                  }
-                  expect(body).toBe('');
-                  expect(response.statusCode).toBe(200);
-                  // INVIO 2o chunk
-                  partCount++;
-                  filePartName = fname + ".part_" + partCount + "." + totalParts;
-                  path = 'test/data/jsApplication/' + chunk2;
+               let response = await fetch('http://localhost:3000/test/file/uploadchunk',
+                   {method: 'POST', body: formData});
 
-                  const formData = {
-                      file: {
-                          value: fs.createReadStream(path),
-                          options: {
-                              fileName: filePartName
-                          }
-                      }
-                  };
-                  // lato server il fileName è "skyppato". utilizza il fileName orginale e quindi forzo il nome con la convenzione.
-                  formData.file.value.path = path.replace(chunk2, filePartName);
+               expect(response).toBeDefined();
+               //
+               expect(response.ok).toBe(true);
+               // let txt = await response.text();
+               // expect(txt).toBe("");
 
-                  request({
-                      url: `http://localhost:3000/test/file/uploadchunk`,
-                      method: 'POST',
-                      headers: {
-                          "Content-Type": "multipart/form-data"
-                      },
-                      formData: formData
-                  }, async function (error, response, body) {
+               // INVIO 2o chunk
+               partCount++;
+               filePartName = fname + ".part_" + partCount + "." + totalParts;
+               path = 'test/data/jsApplication/' + chunk2;
 
-                      const objParsed = JSON.parse(body);
-                      const ds = new jsDataSet.DataSet(objParsed.name);
-                      ds.deSerialize(objParsed, true);
-                      expect(ds.name).toBe('attach_default');
-                      expect(ds.tables.attach.rows.length).toBe(1);
-                      expect(ds.tables.attach.rows[0].idattach).toBe(2);
-                      expect(ds.tables.attach.rows[0].filename.indexOf(chunkName)).toBeGreaterThan(0);
-                      expect(ds.tables.attach.rows[0].size).toBe(111);
+               formData = new FormData();
+               formData.append("file", fs.createReadStream(path), filePartName);
 
-                      // verifico ci sia il file
-                      let allFiles = await readdir(uploadPath);
-                      let files = _.filter(allFiles, fname =>  {
-                          return fname.indexOf(chunkName) > 0;
-                      });
-                      // verifico ce ne sia solo uno e le _part_x_y siano state quindi eliminate
-                      // dal be durante il merge
-                      expect(files.length).toBe(1);
+               response = await fetch('http://localhost:3000/test/file/uploadchunk',
+                   {method: 'POST', body: formData});
 
-                      // verifico il contenuto . sia il merge dei 2 file.
-                      const content = fs.readFileSync(uploadPath + files[0]);
-                      const contentMerged =
-                          '1 test file used to test upload api rest for node js.\r\n'+
-                          '2. test file used to test upload api rest for node js.\r\n';
-                      expect(content.toString()).toBe(contentMerged);
-                      done();
-                  });
-              });
-          });
+               let objParsed = await response.json();
+
+
+               // lato server il fileName è "skyppato". utilizza il fileName orginale e quindi forzo il nome con la convenzione.
+               //formData.file.value.path = path.replace(chunk2, filePartName);
+               const ds = new jsDataSet.DataSet(objParsed.name);
+               ds.deSerialize(objParsed, true);
+               expect(ds.name).toBe('attach_default');
+               expect(ds.tables.attach.rows.length).toBe(1);
+               expect(ds.tables.attach.rows[0].idattach).toBe(2);
+               expect(ds.tables.attach.rows[0].filename.indexOf(chunkName)).toBeGreaterThan(0);
+               expect(ds.tables.attach.rows[0].size).toBe(111);
+
+               // verifico ci sia il file
+               let allFiles = fs.readdirSync(uploadPath);
+               let files = _.filter(allFiles, fname => {
+                   return fname.indexOf(chunkName) > 0;
+               });
+               // verifico ce ne sia solo uno e le _part_x_y siano state quindi eliminate
+               // dal be durante il merge
+               expect(files.length).toBe(1);
+
+               // verifico il contenuto sia il merge dei 2 file.
+               const content = fs.readFileSync(uploadPath + files[0]);
+               const contentMerged =
+                   '1 test file used to test upload api rest for node js.\r\n' +
+                   '2. test file used to test upload api rest for node js.\r\n';
+               expect(content.toString()).toBe(contentMerged);
+
+           });
+
 
         it('download file (after test upload file chunk less 1MB. ok)',
             function (done) {
@@ -1077,17 +1052,18 @@ describe('rest api',
         });
 
 
-        it('should delete uploaded files', async function () {
-            let allFiles = await readdir(uploadPath);
+
+        it('should delete uploaded files',  function (done) {
+            let allFiles = fs.readdirSync(uploadPath);
             const totFileToClear = 2;
             // mi aspetto totFileToClear file caricati durante test. Uno per singolo chunk, il secondo con multipli chunk
             expect(allFiles.length).toBe(totFileToClear);
             // li elimino tutti
             for (let fname of allFiles) {
-                await unlink(uploadPath + fname);
+                fs.unlinkSync(uploadPath + fname);
             }
-            allFiles = await readdir(uploadPath);
+            allFiles = fs.readdirSync(uploadPath);
             expect(allFiles.length).toBe(0);
-            //done();
-        }, timeout);
+            done();
+        });
     });

@@ -54,8 +54,7 @@ function createServicesRoutes(router, folder,routePrefix){
                         (! fileName.startsWith("_") )&&
                              fileName.endsWith(".js"))
         .forEach(fileName => {
-            //console.log(fileName);
-            router.use(`/${routePrefix}`, require(Path.join('..', folder, fileName)))
+            router.use(`/${routePrefix}`, require(Path.join('..', folder, fileName)));
         }
     );
 }

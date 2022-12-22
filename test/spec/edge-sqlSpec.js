@@ -13,7 +13,7 @@ console.log("running edge-sqlSpec");
  * *****************************************************************************************
  * It's necessary, before start running the test, to create a file templated like:
  *  { "server": "db server address",
- *    "dbName": "database name",  //this must be an EMPTY database
+ *    "database": "database name",  //this must be an EMPTY database
  *    "user": "db user",
  *    "pwd": "db password"
  *  }
@@ -27,7 +27,7 @@ dbName = "edge"+ uuidv4().replace(/\-/g, '_');
 if (process.env.TRAVIS){
     dbName="test";
     dbConfig = { "server": "127.0.0.1",
-        "dbName": "test",
+        "database": "test",
         "user": "root",
         "pwd": ""
     };

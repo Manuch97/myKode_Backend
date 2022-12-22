@@ -31,7 +31,7 @@ const mapIsolationLevels = {
 };
 
 const mapping = {
-    'CHAR':CType.string,
+    'CHAR':CType.Char,
     'VARCHAR':CType.string,
     "TEXT":CType.string,
     'NCHAR':CType.string,
@@ -47,28 +47,28 @@ const mapping = {
 
 
     'BIT':CType.int,
-    'TINYINT':CType.int,
-    'SMALLINT':CType.int,
+    'TINYINT':CType.Byte,
+    'SMALLINT':CType.Int16,
     'MEDIUMINT':CType.int,
     'INT':CType.int,
     'BIGINT':CType.int,
 
     'NUMERIC':CType.number,
-    'FLOAT':CType.number,
-    'DOUBLE':CType.number,
-    'SMALLMONEY':CType.number,
-    'MONEY':CType.number,
-    'DECIMAL':CType.number,
-    'REAL':CType.number,
+    'FLOAT':CType.Float,
+    'DOUBLE':CType.Double,
+    'SMALLMONEY':CType.Decimal,
+    'MONEY':CType.Decimal,
+    'DECIMAL':CType.Decimal,
+    'REAL':CType.Single,
 
 
 
     'DATE':CType.date,
-    'DATETIME2':CType.date,
+    'DATETIME2':CType.DateTime,
     'DATETIMEOFFSET':CType.date,
-    'DATETIME':CType.date,
-    'TIME':CType.date,
-    'SMALLDATETIME':CType.date,
+    'DATETIME':CType.DateTime,
+    'TIME':CType.DateTime,
+    'SMALLDATETIME':CType.DateTime,
 
     'BOOLEAN':CType.bool,
 };

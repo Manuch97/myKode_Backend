@@ -1,0 +1,8 @@
+{
+"server": "127.0.0.1",
+"useTrustedConnection": false,
+"user": "sa",
+"pwd": "afrodite",
+"database": "test",
+"sqlModule": "jsSqlServerDriver"
+}

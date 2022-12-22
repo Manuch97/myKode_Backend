@@ -118,11 +118,20 @@ Token.prototype = {
     },
 
     /**
+     * Extract token from request
+     * @param req
+     */
+    getFromRequest(req){
+        return req[tokenConfig.options.requestProperty]; //default is auth
+    },
+
+    /**
      *
      * @param {Request} req
      */
     setInRequest(req){
-        req.headers.authorization = "Bearer "+ this.getToken();
+        req.headers.authorization = "Bearer "+this.getToken();
+        req[tokenConfig.options.requestProperty]= this;
     },
 
 
@@ -174,7 +183,7 @@ Token.prototype = {
             return jwt.decode(token, tokenConfig.options);
         }
         catch (err){
-            console.log(err);
+            //console.log(err);
             return null;
         }
     },
@@ -238,7 +247,7 @@ function checkToken (req, res, next){
         }
         const token = headersAuthParts[1];
         if (token === tokenConfig.AnonymousToken){
-            req.auth= new Token(req); //sets auth as anonymous token
+            req[tokenConfig.options.requestProperty] = new Token(req); //sets auth as anonymous token
             next();
         }
         else {

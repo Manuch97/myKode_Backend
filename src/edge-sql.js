@@ -57,7 +57,7 @@ function EdgeConnection(connectionString, driver) {
 	this.edgeHandler = null;
 	this.driver = driver||'mySql';
 	this.connectionString = connectionString;
-	this.defaultTimeout= 30;
+	this.defaultTimeout= 3000;
 
 	/*references:["MySqlData.dll",
 					"System.Data.SqlClient.dll",
@@ -458,12 +458,14 @@ EdgeConnection.prototype.run = function (script,timeout) {
 		if (index === blocks.length) {
 			def.resolve();
 		} else {
+			//console.log(blocks[index]);
 			that.updateBatch(blocks[index],timeout||that.defaultTimeout)
 			.done(function () {
 				index += 1;
 				loopScript();
 			})
 			.fail(function (err) {
+				console.log(err+" running "+blocks[index]);
 				def.reject(err);
 			});
 		}

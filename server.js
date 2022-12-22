@@ -2,13 +2,12 @@ const fs = require('fs'),
     path   = require('path'),
     http = require('http'),
     DbList = require('./src/jsDbList'),
-    appList = require('./config/appList'),
+    appList = JSON.parse(fs.readFileSync(path.join("config","appList.json"), {encoding: 'utf8'})),
     Crypto = require('crypto-js'),
     JsApplication = require('./src/jsApplication'),
     jsExpressApplication = require('./src/jsExpressApplication.js'),
     JsToken= require('./src/jsToken');
 const Deferred = require("JQDeferred");
-
 
 let secret = require('./config/secret');
 
@@ -24,13 +23,11 @@ DbList.init({
 let port = process.argv[2] || process.env.PORT || 3000;
 
 let GetMeta = require("./client/components/metadata/GetMeta");
-GetMeta.setPath("./../../../meta"); //all metadata must be stored here
-
-// let GetDataSet = require("./client/components/metadata/GetDataSet");
-// GetDataSet.setPath("./dataset/"); //all metadata must be stored here
+GetMeta.setPath("./../../metadata"); //all metadata must be stored here
 
 //This must be executed as soon as possible
 JsToken.assureMasterKey();
+
 let expressApplication = jsExpressApplication.createExpressApplication();
 //adds all applications
 return Deferred.when(appList.map(appCfg=>{

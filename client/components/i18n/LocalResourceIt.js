@@ -3,18 +3,15 @@
  * @module localResourceIt
  * @description  Collection of the localized strings ITALIAN
  */
-(function (localResource) {
+(function () {
 
     /**
      * @constructor LocalResourceIt
      * @description
      * Resources for italian language
      */
-    function LocalResourceIt() {
-    }
 
-    LocalResourceIt.prototype = {
-        constructor: LocalResourceIt,
+    const LocalResourceIt = {
         yes : "Si",
         no : "No",
         error : "Errore",
@@ -46,11 +43,15 @@
         cambioRuolo : 'Scelta ruolo',
 
         logoutMsg : "Vuoi uscire dall' applicazione?",
-        logoutSSOMsg : "Vuoi effettuare anche il Logout dal sistema CAS",
+        logoutSSOMsg : "Vuoi effettuare anche il Logout dal sistema di \"Single sign on\"",
 
         noNetwork : "Il tuo dispositivo non è connesso a nessuna rete! Prova a connetterti e riprova",
         networkConnectionError : "Errore di connessione con il server. Controllare la connessione e riprova!",
         itemChooseNotSelectable : "La voce scelta non potoeva essere selezionata",
+
+        toast_login_success : "Login effettuata correttamente",
+        toast_reg_success : "Registrazione avvenuta correttamente",
+        info_not_avalilable : "Informazioni di riga non presenti per questo oggetto",
 
         rowSelectedNoMoreInDb : "La riga selezionata non è più presente nel db",
         noElementFound:"Nessun elemento trovato",
@@ -89,6 +90,7 @@
         editnotes : "Edita Note",
         mainclose : "Chiudi",
         showlast: "Info riga",
+        mainexportpdf: "Pdf Export",
 
         emptyField: "Svuota campi",
 
@@ -225,6 +227,7 @@
         serverErrorAnonymous : "Operazione anonima non permessa, provare ad effettuare di nuovo l'accesso",
         serverErrorSSO: "Non è stato possibile autenticare tramite SSO",
         dataContabileMissing : "Bisogna specificare una data contabile",
+        filterWithUndefined : "La condizione di filtro contiene degli errori:",
 
         gridoption_tab1 : "Opzioni colonne",
         gridoption_tab2 : "Salva layout",
@@ -236,11 +239,15 @@
         confirmSelection: "Conferma selezione",
         selectedRows: "righe selezionate"
     };
-    let resource = new LocalResourceIt();
+    let resource = LocalResourceIt;
 
-    //era    root.resource = resource; lato server, root.appMeta.localResourceIt = LocalResourceIt; lato client
-    localResource.prototype.registerDictionary("it",resource);
 
-}( (typeof appMeta === 'undefined') ? require('./../metadata/LocalResource') : appMeta.localResource,));
+    if (typeof appMeta !== "undefined"){
+        appMeta.LocalResource.prototype.registerDictionary("it", resource);
+    }
+    else {
+        module.exports = resource;
+    }
+}());
 
 

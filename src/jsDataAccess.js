@@ -737,7 +737,7 @@ DataAccess.prototype = {
     selectRows: function (opt, raw) {
         const options = _.defaults(opt, {columns: '*', applySecurity: true, filter: null});
         return ensureOpen(this, function (conn) {
-            options.filter = conn.getFilterSecured(options.filter, options.applySecurity, options.tableName, options.environment)
+            options.filter = conn.getFilterSecured(options.filter, options.applySecurity, options.tableName, options.environment);
             const selCmd = conn.sqlConn.getSelectCommand(options);
             return conn.sqlConn.queryLines(selCmd, raw);
         });
@@ -831,7 +831,7 @@ DataAccess.prototype = {
     /**
      * run a command to the db ensuring the connection is open in the while
      *  it is a shortcut to an ensureOpen + updateBatch
-     * @method doGenericUpdate
+     * @method doGenericUpdate\
      * @private
      * @param {string} cmd
      * @returns {Promise}

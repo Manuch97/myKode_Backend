@@ -7,7 +7,7 @@
 const defer     = require("JQDeferred");
 const CType = require("./../client/components/metadata/jsDataSet").CType;
 let  _         = require('lodash');
-let formatter = require('./jsSqlServerFormatter').jsSqlServerFormatter;
+let formatter = require('./jsMySqlFormatter').jsMySqlFormatter;
 //let edge      = require('edge-js');
 let EdgeConnection  = require("./edge-sql").EdgeConnection;
 
@@ -341,8 +341,8 @@ Connection.prototype.close = function () {
     return def.promise();
 };
 
-Connection.prototype.run = function (script) {
-    return this.edgeConnection.run(script);
+Connection.prototype.run = function (script,timeout) {
+    return this.edgeConnection.run(script,timeout);
 };
 
 

@@ -204,6 +204,7 @@
                 }
 
             }else{
+				//TODO: richiamare localresource per internazionalizzare il messaggio
                 logger.log(logType.ERROR, "Table " + tSource.name + " does not exists in dataset " + dsDest.name);
             }
         });
@@ -398,7 +399,13 @@
         // errors in cases where lodash is loaded by a script tag and not intended
         // as an AMD module. See http://requirejs.org/docs/errors.html#mismatch for
         // more details.
-        root.getDataUtils = getDataUtils;
+        // Export for a browser or Rhino.
+        if (root.appMeta) {
+            root.appMeta.getDataUtils = getDataUtils;
+        }
+        else {
+            root.getDataUtils = getDataUtils;
+        }
 
         // Define as an anonymous module so, through path mapping, it can be
         // referenced as the "underscore" module.

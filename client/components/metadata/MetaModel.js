@@ -34,6 +34,19 @@
 	let dataRowState = jsDataSet.dataRowState;
 	let dataRowVersion = jsDataSet.dataRowVersion;
 	let q = jsDataQuery;
+	const CType = jsDataSet.CType;
+
+	const numTypes = {
+		'int': 'int',
+		'number': 'number',
+		"Decimal": "Decimal",
+		"Double": "Double",
+		"Float": "Float",
+		"Single": "Single",
+		"Int64": "Int64",
+		"Int32": "Int32",
+		"Int16": "Int16"
+	};
 
     /**
 	 * Sets of function to manage dataset properties
@@ -531,7 +544,7 @@
 					if (self.temporaryTable(t) || self.cachedTable(t)) {
 						return true;
 					}
-					if (!self.visitedFullyTable(t)) {
+					if (!self.visitedFully(t)) {
 						t.clear();
 					}
 					self.allowClear(t, true);
@@ -660,11 +673,10 @@
          */
 		getMaxLen: function (col) {
 			if (!col) return 32767;
-			if (col.ctype === "Decimal") return 20;
-			if (col.ctype === "Float") return 20;
-			if (col.ctype === "Double") return 20;
-			if (col.ctype === "Int32") return 10;
-			if (col.ctype === "Int16") return 5;
+			if (col.ctype === CType.Int16) return 5;
+			if (col.ctype === CType.Int32) return 10;
+			if (col.ctype === CType.int) return 10;
+			if (this.isColumnNumeric(col))return 20;
 			if (!col.maxstringlen) return 2147483647;
 			return col.maxstringlen;
 		},
@@ -741,6 +753,7 @@
 			return this;
 		},
 
+
         /**
          * @method isColumnNumeric
          * @public
@@ -757,18 +770,16 @@
 			if (!ctype) {
 				return false;
 			}
-			const CType = jsDataSet.CType;
-
-			return (ctype ===  CType.number  ||
-				ctype === CType.int);
+			return numTypes[ctype]!== undefined;
 		},
 
+
         /**
-         * @method visitedFullyTable
+         * @method visitedFully
          * @public
          * @description SYNC
          * Gets/Sets cached flag on a table "t"
-         * @method visitedFullyTable
+         * @method visitedFully
          * @param {DataTable} t
          * @param {bool} [value]
          * @returns {boolean}
@@ -897,7 +908,7 @@
 			_.forEach(dRow.table.columns,
 				function (c) {
 					if (that.temporaryColumn(c)) return true;
-					if (dRow.getValue(c.name, dataRowVersion.current) !== dRow.getValue(c.name, dataRowVersion.original)) {
+					if (!that.unchangedValues(dRow, c)) {
 						if (!(dRow.getValue(c.name, dataRowVersion.original) === undefined && dRow.getValue(c.name, dataRowVersion.current) === null)) {
 							hasRealUpdates = true;
 							return false;
@@ -906,6 +917,25 @@
 					return true;
 				});
 			return !hasRealUpdates;
+		},
+
+		unchangedValues:function (dRow, column) {
+			if (column.ctype === CType.DateTime) {
+				let d1 = dRow.getValue(column.name, dataRowVersion.current);
+				let d2 = dRow.getValue(column.name, dataRowVersion.original);
+				if (!d1 && d2) {
+					return false;
+				}
+				if (d1 && !d2) {
+					return false;
+				}
+				if (!d1 && !d2) {
+					return true;
+				}
+				return d1.getTime() === d2.getTime();
+			}
+
+			return dRow.getValue(column.name, dataRowVersion.current) === dRow.getValue(column.name, dataRowVersion.original);
 		},
 
         /**
@@ -1575,19 +1605,17 @@
 			if (MetaModel.prototype.allowDbNull(col)) {
 				return null;
 			}
+			if (this.isColumnNumeric(col)){
+				return 0;
+			}
 			const typename = col.ctype;
+
 			switch (typename) {
-				case "String":
-				case "Char":
+				case CType.string:
+				case CType.char:
 					return "";
-				case "Single":
-				case "Double":
-				case "Int16":
-				case "Int32":
-				case "Byte":
-				case "Decimal":
-					return 0;
-				case "DateTime":
+				case CType.DateTime:
+				case CType.date:
 					return new Date("1000-01-01");
 				default:
 					return "";
@@ -1598,28 +1626,39 @@
 	// Some AMD build optimizers like r.js check for condition patterns like the following:
 	//noinspection JSUnresolvedVariable
 	if (typeof define === 'function' && typeof define.amd === 'object' && define.amd) {
-		// Expose lodash to the global object when an AMD loader is present to avoid
-		// errors in cases where lodash is loaded by a script tag and not intended
-		// as an AMD module. See http://requirejs.org/docs/errors.html#mismatch for
-		// more details.
-		root.metaModel = metaModel;
+		// Export for a browser or Rhino.
+		if (root.appMeta) {
+			root.appMeta.metaModel = metaModel;
+		}
+		else {
+			// Expose lodash to the global object when an AMD loader is present to avoid
+			// errors in cases where lodash is loaded by a script tag and not intended
+			// as an AMD module. See http://requirejs.org/docs/errors.html#mismatch for
+			// more details.
+			root.metaModel = metaModel;
 
-		// Define as an anonymous module so, through path mapping, it can be
-		// referenced as the "underscore" module.
-		//noinspection JSUnresolvedFunction
-		define(function () {
-			return metaModel;
-		});
+			// Define as an anonymous module so, through path mapping, it can be
+			// referenced as the "underscore" module.
+			//noinspection JSUnresolvedFunction
+			define(function () {
+				return metaModel;
+			});
+		}
 	}
 	// Check for `exports` after `define` in case a build optimizer adds an `exports` object.
 	else if (freeExports && freeModule) {
-		// Export for Node.js or RingoJS.
-		if (moduleExports) {
-			(freeModule.exports = metaModel).metaModel = metaModel;
+		// Export for a browser or Rhino.
+		if (root.appMeta) {
+			root.appMeta.metaModel = metaModel;
 		}
-		// Export for Narwhal or Rhino -require.
-		else {
-			freeExports.metaModel = metaModel;
+		else {	// Export for Node.js or RingoJS.
+			if (moduleExports) {
+				(freeModule.exports = metaModel).metaModel = metaModel;
+			}
+			// Export for Narwhal or Rhino -require.
+			else {
+				freeExports.metaModel = metaModel;
+			}
 		}
 	}
 	else {
