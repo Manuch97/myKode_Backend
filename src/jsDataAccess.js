@@ -138,37 +138,37 @@ function DataAccess(options) {
         //noinspection JSValidateTypes
         //if a securityProvider has been specified, use that to instantiate a Security class
         options.securityProvider(that, conn.getFormatter())
-            .done(function (security) {
-                that.security = security;
-                if (options.doneCallBack) {
-                    that.constructor = DataAccess;
-                    options.doneCallBack(that); //that.sqlConn.prototype should be already set
-                }
-                that.close();
-            })
-            .fail(function (err) {
-                that.lastError = "Error getting security information:" + err.toString();
-                if (options.errCallBack) {
-                    options.errCallBack(err);
-                }
-            });
+        .done(function (security) {
+            that.security = security;
+            if (options.doneCallBack) {
+                that.constructor = DataAccess;
+                options.doneCallBack(that); //that.sqlConn.prototype should be already set
+            }
+            that.close();
+        })
+        .fail(function (err) {
+            that.lastError = "Error getting security information:" + err.toString();
+            if (options.errCallBack) {
+                options.errCallBack(err);
+            }
+        });
     }
 
 
     if (options.persisting) {
         tempSqlConn.open()
-            .done(function (conn) {
-                that.sqlConn = conn;
-                that.sqlFormatter = conn.getFormatter();
-                that.nesting += 1;
-                getSecurity(conn);
-            })
-            .fail(function (err) {
-                that.lastError = "Error opening database:" + err.toString();
-                if (options.errCallBack) {
-                    options.errCallBack(err);
-                }
-            });
+        .done(function (conn) {
+            that.sqlConn = conn;
+            that.sqlFormatter = conn.getFormatter();
+            that.nesting += 1;
+            getSecurity(conn);
+        })
+        .fail(function (err) {
+            that.lastError = "Error opening database:" + err.toString();
+            if (options.errCallBack) {
+                options.errCallBack(err);
+            }
+        });
     }
     else {
         that.sqlConn = tempSqlConn;
@@ -222,10 +222,10 @@ DataAccess.prototype = {
         const usr = this.externalUser;
         const res = Deferred();
         new DataAccess(this.sqlConn.clone())
-            .then(function (DA) {
-                DA.externalUser = usr;
-                res.resolve(DA);
-            });
+        .then(function (DA) {
+            DA.externalUser = usr;
+            res.resolve(DA);
+        });
         return res.promise();
     },
 
@@ -350,12 +350,12 @@ DataAccess.prototype = {
     readLastValue: function (query) {
         const res = Deferred();
         this.myReadLastTable( query)
-            .done(function (result) {
-                res.resolve(getAProperty(getObjectOrLastRow(result)));
-            })
-            .fail(function (err) {
-                res.reject(err);
-            });
+        .done(function (result) {
+            res.resolve(getAProperty(getObjectOrLastRow(result)));
+        })
+        .fail(function (err) {
+            res.reject(err);
+        });
         return res.promise();
     },
 
@@ -376,7 +376,7 @@ DataAccess.prototype = {
         .fail(function (err) {
             res.reject(err);
         });
-    return res.promise();
+        return res.promise();
     },
 
     /**
@@ -391,13 +391,14 @@ DataAccess.prototype = {
         const res = Deferred();
         ensureOpen(this, function (conn) {
             return conn.sqlConn.queryBatch(query, raw)
-                .done(function (result) {
-                    res.resolve(result);
-                })
-                .fail(function (err) {
-                    res.reject(err);
-                });
-        });
+            .done(function (result) {
+                res.resolve(result);
+            })
+            .fail(function (err) {
+                res.reject(err);
+            });
+        })
+        .fail(err=>res.reject(err));
         return res.promise();
     },
 
@@ -428,7 +429,8 @@ DataAccess.prototype = {
             .fail(function (err) {
                 res.reject(err);
             });
-        });
+        })
+        .fail(err=>res.reject(err));
         return res.promise();
     },
 
@@ -472,17 +474,17 @@ DataAccess.prototype = {
         const cmd = this.sqlConn.getDeleteCommand(options),
             res = Deferred();
         this.doGenericUpdate(cmd)
-            .done(function (val) {
-                //noinspection JSUnresolvedVariable
-                if (val === undefined || val.rowcount === undefined || val.rowcount === 0) {
-                    res.reject('There was no row in table ' + options.tableName + ' to delete with condition ' + options.filter);
-                } else {
-                    res.resolve(val);
-                }
-            })
-            .fail(function (err) {
-                res.reject(err);
-            });
+        .done(function (val) {
+            //noinspection JSUnresolvedVariable
+            if (val === undefined || val.rowcount === undefined || val.rowcount === 0) {
+                res.reject('There was no row in table ' + options.tableName + ' to delete with condition ' + options.filter);
+            } else {
+                res.resolve(val);
+            }
+        })
+        .fail(function (err) {
+            res.reject(err);
+        });
         return res.promise();
     },
 
@@ -499,17 +501,17 @@ DataAccess.prototype = {
         const cmd = this.sqlConn.getInsertCommand(table, columns, values),
             res = Deferred();
         this.doGenericUpdate( cmd)
-            .done(function (val) {
-                //noinspection JSUnresolvedVariable
-                if (val === undefined || val.rowcount === undefined || val.rowcount === 0) {
-                    res.reject('Error running command ' + cmd);
-                } else {
-                    res.resolve(val);
-                }
-            })
-            .fail(function (err) {
-                res.reject(err);
-            });
+        .done(function (val) {
+            //noinspection JSUnresolvedVariable
+            if (val === undefined || val.rowcount === undefined || val.rowcount === 0) {
+                res.reject('Error running command ' + cmd);
+            } else {
+                res.resolve(val);
+            }
+        })
+        .fail(function (err) {
+            res.reject(err);
+        });
         return res.promise();
     },
 
@@ -528,17 +530,17 @@ DataAccess.prototype = {
         const cmd = this.sqlConn.getUpdateCommand(options),
             res = Deferred();
         this.doGenericUpdate( cmd)
-            .done(function (val) {
-                //noinspection JSUnresolvedVariable
-                if (val === undefined || val.rowcount === undefined || val.rowcount === 0) {
-                    res.reject('Error running command ' + cmd + 'detail:', val);
-                } else {
-                    res.resolve(val);
-                }
-            })
-            .fail(function (err) {
-                res.reject(err);
-            });
+        .done(function (val) {
+            //noinspection JSUnresolvedVariable
+            if (val === undefined || val.rowcount === undefined || val.rowcount === 0) {
+                res.reject('Error running command ' + cmd + 'detail:', val);
+            } else {
+                res.resolve(val);
+            }
+        })
+        .fail(function (err) {
+            res.reject(err);
+        });
         return res.promise();
     },
 
@@ -571,9 +573,9 @@ DataAccess.prototype = {
         }
         if (row.state === rowState.added) {
             return this.sqlConn.getInsertCommand(
-                    row.table.postingTable(),
-                    row.table.getPostingColumnsNames(_.keys(r)),
-                    _.values(r));
+                row.table.postingTable(),
+                row.table.getPostingColumnsNames(_.keys(r)),
+                _.values(r));
         }
         if (row.state === rowState.deleted) {
             return this.sqlConn.getDeleteCommand(
@@ -662,13 +664,13 @@ DataAccess.prototype = {
         options.filter = this.getFilterSecured(options.filter, options.applySecurity, options.tableName, options.environment);
         const selCmd = that.sqlConn.getSelectCommand(options);
         that.runSql(selCmd, raw)
-            .done(function (dataRead) {
-                dataRead.tableName = options.alias || options.tableName;
-                def.resolve(dataRead);
-            })
-            .fail(function (err) {
-                def.reject(err);
-            });
+        .done(function (dataRead) {
+            dataRead.tableName = options.alias || options.tableName;
+            def.resolve(dataRead);
+        })
+        .fail(function (err) {
+            def.reject(err);
+        });
         return def.promise();
     },
 
@@ -698,19 +700,19 @@ DataAccess.prototype = {
         }
 
         options.filter  =this.getFilterSecured(options.filter,
-                                options.applySecurity,
-                                options.tableName,
-                                options.environment);
+            options.applySecurity,
+            options.tableName,
+            options.environment);
 
         const selCmd = that.sqlConn.getPagedTableCommand(options);
         that.runSql(selCmd, raw)
-            .done(function (dataRead) {
-                dataRead.tableName = options.alias || options.tableName;
-                def.resolve(dataRead);
-            })
-            .fail(function (err) {
-                def.reject(err);
-            });
+        .done(function (dataRead) {
+            dataRead.tableName = options.alias || options.tableName;
+            def.resolve(dataRead);
+        })
+        .fail(function (err) {
+            def.reject(err);
+        });
         return def.promise();
     },
 
@@ -786,15 +788,15 @@ DataAccess.prototype = {
         opt.tableName = options.table.tableForReading();
         opt.applySecurity = !options.table.skipSecurity();
         this.select(opt)
-            .done(function (res) {
-                _.forEach(res, function (r) {
-                    mergeRowIntoTable(options.table, r);
-                });
-                def.resolve(options.table);
-            })
-            .fail(function (err) {
-                def.reject(err);
+        .done(function (res) {
+            _.forEach(res, function (r) {
+                mergeRowIntoTable(options.table, r);
             });
+            def.resolve(options.table);
+        })
+        .fail(function (err) {
+            def.reject(err);
+        });
         return def.promise();
     },
 
@@ -840,13 +842,14 @@ DataAccess.prototype = {
         const res = Deferred();
         ensureOpen(this, function (conn) {
             return conn.sqlConn.updateBatch(cmd)
-                .done(function (result) {
-                    res.resolve(result);
-                })
-                .fail(function (err) {
-                    res.reject(err);
-                });
-        });
+            .done(function (result) {
+                res.resolve(result);
+            })
+            .fail(function (err) {
+                res.reject(err);
+            });
+        })
+        .fail(err=>res.reject(err));
         return res.promise();
     },
 
@@ -868,7 +871,7 @@ DataAccess.prototype = {
      */
     myReadValue : function(options) {
         let expr = typeof options.expr==='string' ? options.expr:
-                                    this.getFormatter().toSql(options.expr, options.environment);
+            this.getFormatter().toSql(options.expr, options.environment);
         const opt = _.defaults({}, options, {columns: [expr]}),
             cmd = this.sqlConn.getSelectCommand(opt);
         return this.myReadFirstValue( cmd);
@@ -921,20 +924,20 @@ DataAccess.prototype.queryPackets = function (opt, packetSize, raw) {
             opt.filter = conn.getFilterSecured(options.filter, options.applySecurity, options.tableName, options.environment);
             const selCmd = conn.sqlConn.getSelectCommand(opt);
             conn.sqlConn.queryPackets(selCmd, raw, packetSize)
-                .progress(function (r) {
-                    if (r.meta) {
-                        currTableInfo.columns   = r.meta;
-                        currTableInfo.tableName = tableName;
-                    } else {
-                        notifyPacket(r.rows);
-                    }
-                })
-                .done(function () {
-                    def.resolve();
-                })
-                .fail(function (err) {
-                    def.reject(err);
-                });
+            .progress(function (r) {
+                if (r.meta) {
+                    currTableInfo.columns   = r.meta;
+                    currTableInfo.tableName = tableName;
+                } else {
+                    notifyPacket(r.rows);
+                }
+            })
+            .done(function () {
+                def.resolve();
+            })
+            .fail(function (err) {
+                def.reject(err);
+            });
         });
     });
     return def.promise();
@@ -987,15 +990,15 @@ DataAccess.prototype.multiSelect = function (options) {
             //obtains cmd as a concatenation of all sql fields in result list
             const cmd = that.sqlConn.appendCommands(_.map(resultList, 'sql'));
             doMultiSelect(that.sqlConn, options.packetSize, cmd, _.map(resultList, 'alias'), opt.raw)
-                .done(function (res) {
-                    def.resolve(res);
-                })
-                .progress(function (data) {
-                    def.notify(data);
-                })
-                .fail(function (err) {
-                    def.reject(err);
-                });
+            .done(function (res) {
+                def.resolve(res);
+            })
+            .progress(function (data) {
+                def.notify(data);
+            })
+            .fail(function (err) {
+                def.reject(err);
+            });
         }
     );
 
@@ -1014,21 +1017,21 @@ DataAccess.prototype.multiSelect = function (options) {
 DataAccess.prototype.mergeMultiSelect = function (selectList, ds, environment) {
     const def = Deferred();
     this.multiSelect({
-            selectList: selectList,
-            applySecurity: (environment !== undefined),
-            environment: environment
-        })
-        .progress(function (data) {
-            //data is an object: {tableName: string, set: number, rows : object[]}
-            const table = ds.tables[data.tableName];
-            table.mergeArray(data.rows, true);
-        })
-        .done(function (data) {
-            def.resolve();
-        })
-        .fail(function (err) {
-            def.reject(err);
-        });
+        selectList: selectList,
+        applySecurity: (environment !== undefined),
+        environment: environment
+    })
+    .progress(function (data) {
+        //data is an object: {tableName: string, set: number, rows : object[]}
+        const table = ds.tables[data.tableName];
+        table.mergeArray(data.rows, true);
+    })
+    .done(function (data) {
+        def.resolve();
+    })
+    .fail(function (err) {
+        def.reject(err);
+    });
     return def.promise();
 };
 
@@ -1053,37 +1056,37 @@ function ensureOpen(conn, command) {
     const res = Deferred();
     let savedOutput;
     conn.open()
-        .then(function () {
-            const myRes =  Deferred();
-            try {
-                command(conn)
-                    .done(function (o) {
-                        savedOutput = o;
-                        myRes.resolve(); //returns the object returned from the callback
-                    })
-                    .progress(function (o) {
-                        res.notify(o);
-                    })
-                    .fail(function (err) {
-                        myRes.reject("executing "+command.name+" "+ err);
-                    });
-            } catch (err) {
-                myRes.reject(err);
-            }
-            return myRes.promise();
-        })
-        .done(function () {
-            conn.close()
-                .done(function () {
-                    res.resolve(savedOutput);
-                })
-                .fail(function () {
-                    res.resolve(savedOutput);
-                });
-        })
-        .fail(function (err) {
+    .then(function () {
+        //const myRes =  Deferred();
+        try {
+            command(conn)
+            .done(function (o) {
+                savedOutput = o;
+                res.resolve(); //returns the object returned from the callback
+            })
+            .progress(function (o) {
+                res.notify(o);
+            })
+            .fail(function (err) {
+                res.reject("executing "+command.name+" "+ err);
+            });
+        } catch (err) {
             res.reject(err);
+        }
+        return res.promise();
+    })
+    .done(function () {
+        conn.close()
+        .done(function () {
+            res.resolve(savedOutput);
+        })
+        .fail(function () {
+            res.resolve(savedOutput);
         });
+    })
+    .fail(function (err) {
+        res.reject(err);
+    });
     return res.promise();
 }
 
@@ -1176,18 +1179,18 @@ DataAccess.prototype.selectCount = function (options) {
         opt = _.defaults(options, {applySecurity: true, filter: null});
     let filterSec = this.getFilterSecured(opt.filter, opt.applySecurity, opt.tableName, opt.environment);
     if (filterSec.isFalse) {
-                def.resolve(0);
-                return def.promise();
+        def.resolve(0);
+        return def.promise();
     }
     opt.filter = filterSec;
-        const selCmd = that.sqlConn.getSelectCount(opt);
-        that.runCmd(selCmd)
-        .done(function (count) {
-            def.resolve(count);
-        })
-        .fail(function (err) {
-            def.reject(err);
-        });
+    const selCmd = that.sqlConn.getSelectCount(opt);
+    that.runCmd(selCmd)
+    .done(function (count) {
+        def.resolve(count);
+    })
+    .fail(function (err) {
+        def.reject(err);
+    });
     return def.promise();
 };
 
@@ -1220,24 +1223,24 @@ function doMultiSelect(conn, packetSize, cmd, aliasList, raw) {
         }
     }
     conn.queryPackets(cmd, raw, packetSize)
-        .progress(function (r) {
-            if (r.meta) { //can only be received when raw is true
-                currTableInfo.meta = r.meta;
-                currTableInfo.tableName = aliasList[r.set];
-                // se raw=true deve notificare il pacchetto altrimenti non notifica nulla??
-                if (raw){
-                    notifyPacket(r);
-                }
-            } else {
+    .progress(function (r) {
+        if (r.meta) { //can only be received when raw is true
+            currTableInfo.meta = r.meta;
+            currTableInfo.tableName = aliasList[r.set];
+            // se raw=true deve notificare il pacchetto altrimenti non notifica nulla??
+            if (raw){
                 notifyPacket(r);
             }
-        })
-        .done(function () {
-            def.resolve();
-        })
-        .fail(function (err) {
-            def.reject(err);
-        });
+        } else {
+            notifyPacket(r);
+        }
+    })
+    .done(function () {
+        def.resolve();
+    })
+    .fail(function (err) {
+        def.reject(err);
+    });
     return def.promise();
 }
 

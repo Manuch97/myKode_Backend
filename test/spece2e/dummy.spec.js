@@ -20,7 +20,7 @@ describe('jsbackend core',
                 // headers: {
                 //     'authorization': "Bearer AnonymousToken123456789" ,
                 // },
-                url: 'http://localhost:3000/test/auth/dummy',
+                url: 'http://localhost:54471/test/auth/dummy',
                 contentType: 'application/json; charset=utf-8',
                 type: 'GET',
                 timeout : 10000,

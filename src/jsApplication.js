@@ -129,15 +129,15 @@ JsApplication.prototype = {
         });
 
         this.getDataAccess()
-            .then(pooledConn=>{
-                let conn = pooledConn.getDataAccess();
-                return this.createSession(identity, conn);
-            })
-            .then(environment=>{
-                let token = new Token(req,identity);
-                token.setInRequest(req);
-                next();
-            });
+        .then(pooledConn=>{
+            let conn = pooledConn.getDataAccess();
+            return this.createSession(identity, conn);
+        })
+        .then(environment=>{
+            let token = new Token(req,identity);
+            token.setInRequest(req);
+            next();
+        });
 
         /// creare il token che simuli l'invio da parte di quella identity
         /// valorizzare l'header con il token
@@ -160,20 +160,21 @@ JsApplication.prototype = {
         //adds all routers of directory routes
         const routes = "routes";
         fs.readdirSync(routes)
-            .filter(fileName => fs.lstatSync(`${routes}/${fileName}`).isDirectory()) //takes all folders
-            .forEach(folderName => {
-                if (noTokenFolders[folderName] === undefined){
-                    //check token for any path, with the only exception for those in noTokenFolders
-                    this.router.use("/"+folderName+"/", checkToken.bind(this));
-                }
-                //At this point the token exists if it is required. But not necessarily is bound to a valid session
-                this.router.use("/"+folderName+"/", this.getOrCreateContext.bind(this));
-                createServicesRoutes(this.router, Path.join("routes",folderName),folderName);
-            });
+        .filter(fileName => fs.lstatSync(`${routes}/${fileName}`).isDirectory()) //takes all folders
+        .forEach(folderName => {
+            if (noTokenFolders[folderName] === undefined){
+                //check token for any path, with the only exception for those in noTokenFolders
+                this.router.use("/"+folderName+"/", checkToken.bind(this));
+            }
+            //At this point the token exists if it is required. But not necessarily is bound to a valid session
+            this.router.use("/"+folderName+"/", this.getOrCreateContext.bind(this));
+            createServicesRoutes(this.router, Path.join("routes",folderName),folderName);
+        });
 
         //The "metadata" path is mapped into "meta"
         this.expressApplication.use('/client/meta', Express.static('metadata'));
         this.expressApplication.use('/client/pages', Express.static('pages'));
+        this.expressApplication.use(Express.static("client"));
 
         this.expressApplication.use(this.router);
         this.expressApplication.use(this.error.bind(this));
@@ -183,17 +184,17 @@ JsApplication.prototype = {
         let connPool;
         let def = Deferred();
         this.getDataAccess()
-            .then(_connPool=>{
-                connPool=_connPool;
-                return connPool.getDataAccess();
-            })
-            .then(conn=>{
-                this.security= conn.security;
-                def.resolve();
-            })
-            .fail(err=>{
-                def.reject(err);
-            });
+        .then(_connPool=>{
+            connPool=_connPool;
+            return connPool.getDataAccess();
+        })
+        .then(conn=>{
+            this.security= conn.security;
+            def.resolve();
+        })
+        .fail(err=>{
+            def.reject(err);
+        });
         return  def.promise();
     },
 
@@ -232,13 +233,13 @@ JsApplication.prototype = {
         let that=this;
         let env= this.createEnvironment(identity);
         env.load(conn)//evaluate environments from database
-            .then(()=>{
-                that.environments[identity.sessionID()]=env;
-                def.resolve(env);
-            })
-            .fail(err=> {
-                def.reject(err);
-            });
+        .then(()=>{
+            that.environments[identity.sessionID()]=env;
+            def.resolve(env);
+        })
+        .fail(err=> {
+            def.reject(err);
+        });
 
         return  def.promise();
     },
@@ -261,7 +262,7 @@ JsApplication.prototype = {
      * @return {DataSet}
      */
     getDataSet: function(tableName,editType){
-      return commonGetDataSet.getDataSet(tableName,editType);
+        return commonGetDataSet.getDataSet(tableName,editType);
     },
 
 
@@ -278,7 +279,7 @@ JsApplication.prototype = {
      * @param {Middleware} next
      */
     getOrCreateContext: function  (req, res, next) {
-        let token = req[tokenConfig.options.requestProperty]; //default is req[auth]
+        let token = req.get(tokenConfig.options.requestProperty); //default is req[auth]
 
         //Creates an Identity basing on the request token. If no token,
         //  an anonymous identity is created
@@ -291,7 +292,7 @@ JsApplication.prototype = {
             }
             else {
                 if (identity.isAnonymous) {
-                        env = this.getAnonymousEnvironment(identity);
+                    env = this.getAnonymousEnvironment(identity);
                 }
             }
             return this.getContext(req,res,next, env);
@@ -330,23 +331,29 @@ JsApplication.prototype = {
         ctx.securityProvider = this.getSecurityProvider;
         ctx.identity = getIdentityFromRequest(req);
         securityProvider(ctx.dataAccess,ctx.formatter)
-            .then((security)=>{
-                ctx.security = security;
-                ctx.createPostData = this.createPostData.bind(this, ctx);  //to override
-                ctx.getDataSet = this.getDataSet.bind(this); //to override
-                ctx.localResource = LocalResource.prototype.getLocalResource(this.getLanguageFromRequest(req));
-                ctx.getMeta= function (tableName){
-                    return GetMeta.getMeta(tableName,req);
-                };
-                ctx.getDataInvoke = new GetDataInvoke(ctx);
-                req.app.locals.context = ctx;
-                this.releaseConnection(req, res, ctx);
-                next();
+        .then((security)=>{
+            ctx.security = security;
+            ctx.createPostData = this.createPostData.bind(this, ctx);  //to override
+            ctx.getDataSet = this.getDataSet.bind(this); //to override
+            ctx.localResource = LocalResource.prototype.getLocalResource(this.getLanguageFromRequest(req));
+            ctx.getMeta= function (tableName){
+                return GetMeta.getMeta(tableName,req);
+            };
+            ctx.getDataInvoke = new GetDataInvoke(ctx);
+            req.app.locals.context = ctx;
+            this.releaseConnection(req, res, ctx);
+            next();
+        })
+        .fail(err=>{
+            res.status(500).json({
+                error: err
             });
+        });
+
     },
 
     getSecurityProvider: function(){
-      return require("./jsSecurity");
+        return require("./jsSecurity");
     },
 
     getLanguageFromRequest: function(req){
@@ -362,7 +369,7 @@ JsApplication.prototype = {
      */
     getContext: function  (req, res, next, env) {
         try {
-            let token = req[tokenConfig.options.requestProperty]; //default is auth
+            let token = req.get(tokenConfig.options.requestProperty); //default is auth
             if (!token) {
                 res.status(401).json({
                     error: 'No token'
@@ -383,14 +390,14 @@ JsApplication.prototype = {
 
             //Creates a context for the request execution
             this.getDataAccess()
-                .then((pooledConn) => {
-                    this.createContext(pooledConn, env, req, res, next);
-                })
-                .fail(err=>{
-                    res.status(401).json({
-                        error: 'Db not connected'
-                    });
+            .then((pooledConn) => {
+                this.createContext(pooledConn, env, req, res, next);
+            })
+            .fail(err=>{
+                res.status(401).json({
+                    error: 'Db not connected'
                 });
+            });
         }
         catch (err) {
             res.status(401).json({

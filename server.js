@@ -20,7 +20,7 @@ DbList.init({
     secret:secret
 });
 
-let port = process.argv[2] || process.env.PORT || 3000;
+let port = process.argv[2] || process.env.PORT || 54471;
 
 let GetMeta = require("./client/components/metadata/GetMeta");
 GetMeta.setPath("./../../metadata"); //all metadata must be stored here

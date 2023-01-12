@@ -21,7 +21,7 @@ describe('rest api',
                 let objser = q.toObject(filter);
                 let filterSerialized =  JSON.stringify(objser);
                 let options   = {
-                    url: 'http://localhost:3000/test/data/select',
+                    url: 'http://localhost:54471/test/data/select',
                     type: 'POST',
                     data: {
                         tableName: 'customer',
@@ -53,7 +53,7 @@ describe('rest api',
             function (done) {
                 var options   = {
 
-                    url: 'http://localhost:3000/test/data/getDataSet',
+                    url: 'http://localhost:54471/test/data/getDataSet',
                     type: 'POST',
                     data: {
                         tableName: 'customuser',

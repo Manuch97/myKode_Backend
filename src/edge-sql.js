@@ -10,6 +10,8 @@
  */
 const defer     = require("JQDeferred");
 const _         = require('lodash');
+const edge = require("edge-js");
+const os = require("os");
 const isolationLevels=['READ_UNCOMMITTED','READ_COMMITTED','REPEATABLE_READ','SNAPSHOT','SERIALIZABLE'];
 
 
@@ -52,7 +54,7 @@ function simpleObjectify(colNames, rows) {
  * @param {string} driver  can be sqlServer or mySql
  * @constructor
  */
-function EdgeConnection(connectionString, driver) {	
+function EdgeConnection(connectionString, driver) {
 	this.sqlCompiler = 'db';
 	this.edgeHandler = null;
 	this.driver = driver||'mySql';
@@ -168,13 +170,13 @@ EdgeConnection.prototype.close = function () {
 	}
 	//console.log("closing  handler "+this.edgeHandler+" for "+this.connectionString);
 	let	edgeClose = edge.func(this.sqlCompiler,
-			{
-				handler: this.edgeHandler,
-				source: 'close',
-				cmd: 'close',
-				driver: this.driver
-			});
-	
+		{
+			handler: this.edgeHandler,
+			source: 'close',
+			cmd: 'close',
+			driver: this.driver
+		});
+
 	edgeClose({}, function (error) {
 		if (error) {
 			//console.log("error closing handler "+that.edgeHandler+" for "+that.connectionString+":"+error);
@@ -257,7 +259,7 @@ EdgeConnection.prototype.queryBatch = function (query, raw, timeout) {
 EdgeConnection.prototype.updateBatch = function (query,timeout) {
 	let  edge      = require('edge-js'),
 		edgeQuery = edge.func(this.sqlCompiler, _.assign({source: query, cmd: 'nonquery',timeout:timeout||this.defaultTimeout},
-		this.getDbConn())),
+			this.getDbConn())),
 		def = defer();
 	edgeQuery({}, function (error, result) {
 		if (error) {
@@ -393,10 +395,10 @@ EdgeConnection.prototype.queryPackets = function (query, raw, packSize, timeout)
 		//console.log("queryPackets "+query);
 		let edge      = require('edge-js'),
 			edgeQuery = edge.func(that.sqlCompiler, _.assign({source: query,
-						callback: callback,
-						timeout:timeout||that.defaultTimeout,
-						packetSize: packetSize},
-			that.getDbConn()));
+					callback: callback,
+					timeout:timeout||that.defaultTimeout,
+					packetSize: packetSize},
+				that.getDbConn()));
 
 		edgeQuery({}, function (error) {
 			if (error) {

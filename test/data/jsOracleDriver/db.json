@@ -1,0 +1,5 @@
+{ "server": "localhost",
+  "dbName": "orcl",
+  "user": "sys",
+  "pwd": "omg"
+}

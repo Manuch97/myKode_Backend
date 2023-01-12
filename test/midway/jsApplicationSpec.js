@@ -147,7 +147,7 @@ describe('rest api',
                     params.append('filter', filterSerialized);
 
                     let response = await fetch(
-                        'http://localhost:3000/test/data/select',
+                        'http://localhost:54471/test/data/select',
                         {
                             method: 'POST',
                             body: params
@@ -174,7 +174,7 @@ describe('rest api',
                 let filterSerialized = JSON.stringify(objser);
 
                 request({
-                    url: 'http://localhost:3000/test/data/selectCount',
+                    url: 'http://localhost:54471/test/data/selectCount',
                     method: 'POST',
                     form: {
                         tableName: 'customusergroup',
@@ -222,7 +222,7 @@ describe('rest api',
                 const selBuilderArrPrm = JSON.stringify({arr: ar});
 
                 request({
-                    url: 'http://localhost:3000/test/data/multiRunSelect',
+                    url: 'http://localhost:54471/test/data/multiRunSelect',
                     method: 'POST',
                     form: {
                         selBuilderArr: selBuilderArrPrm
@@ -248,7 +248,7 @@ describe('rest api',
         it("getDataSet ws: dataset customuser_test returned",
             function (done){
                 request({
-                    url: 'http://localhost:3000/test/data/getDataSet',
+                    url: 'http://localhost:54471/test/data/getDataSet',
                     method: 'POST',
                     form: {
                         tableName: 'customuser',
@@ -286,7 +286,7 @@ describe('rest api',
                 const tableName = 'customusergroup';
                 const listType = 'default';
                 request({
-                    url: 'http://localhost:3000/test/data/getPagedTable',
+                    url: 'http://localhost:54471/test/data/getPagedTable',
                     method: 'POST',
                     form: {
                         tableName: tableName,
@@ -321,7 +321,7 @@ describe('rest api',
             function (done){
                 // 1. recupero dataset vuoto
                 request({
-                    url: 'http://localhost:3000/test/data/getDataSet',
+                    url: 'http://localhost:54471/test/data/getDataSet',
                     method: 'POST',
                     form: {
                         tableName: 'customuser',
@@ -344,7 +344,7 @@ describe('rest api',
                     let objser = q.toObject(filter);
                     let filterSerialized = JSON.stringify(objser);
                     request({
-                        url: 'http://localhost:3000/test/data/getDsByRowKey',
+                        url: 'http://localhost:54471/test/data/getDsByRowKey',
                         method: 'POST',
                         form: {
                             tableName: 'customuser',
@@ -382,7 +382,7 @@ describe('rest api',
 
                 // recupera un dataset e poi lo popola a aprtire dalla riga principale
                 request({
-                    url: 'http://localhost:3000/test/data/getDataSet',
+                    url: 'http://localhost:54471/test/data/getDataSet',
                     method: 'POST',
                     form: {
                         tableName: 'customuser',
@@ -404,7 +404,7 @@ describe('rest api',
                     let objserFilter = q.toObject(filter);
                     let filterSerialized = JSON.stringify(objserFilter);
                     request({
-                        url: 'http://localhost:3000/test/data/doGet',
+                        url: 'http://localhost:54471/test/data/doGet',
                         method: 'POST',
                         form: {
                             ds: dsSerialized,
@@ -441,7 +441,7 @@ describe('rest api',
 
                 // recupera un dataset e poi lo popola a aprtire dalla riga principale
                 request({
-                    url: 'http://localhost:3000/test/data/getDataSet',
+                    url: 'http://localhost:54471/test/data/getDataSet',
                     method: 'POST',
                     form: {
                         tableName: 'customuser',
@@ -463,7 +463,7 @@ describe('rest api',
                     let objserFilter = q.toObject(filter);
                     let filterSerialized = JSON.stringify(objserFilter);
                     request({
-                        url: 'http://localhost:3000/test/data/doGet',
+                        url: 'http://localhost:54471/test/data/doGet',
                         method: 'POST',
                         form: {
                             ds: dsSerialized,
@@ -494,7 +494,7 @@ describe('rest api',
         it("setUsrEnv ws: set usr-env test variable",
             function (done){
                 request({
-                    url: 'http://localhost:3000/test/data/setUsrEnv',
+                    url: 'http://localhost:54471/test/data/setUsrEnv',
                     method: 'POST',
                     form: {
                         key: 'test_key',
@@ -522,7 +522,7 @@ describe('rest api',
                 let filterSerialized = JSON.stringify(objser);
 
                 request({
-                    url: 'http://localhost:3000/test/data/doReadValue',
+                    url: 'http://localhost:54471/test/data/doReadValue',
                     method: 'POST',
                     form: {
                         table: 'customusergroup',
@@ -549,7 +549,7 @@ describe('rest api',
                 const idflowchart = '210001';
                 const ndetail = '1';
                 request({
-                    url: 'http://localhost:3000/test/data/changeRole',
+                    url: 'http://localhost:54471/test/data/changeRole',
                     method: 'POST',
                     form: {
                         idflowchart: idflowchart,
@@ -575,7 +575,7 @@ describe('rest api',
                 const tableName = 'customuser';
                 const columnList = '*';
                 request({
-                    url: `http://localhost:3000/test/data/createTableByName?tableName=${tableName}&columnList=${columnList}`,
+                    url: `http://localhost:54471/test/data/createTableByName?tableName=${tableName}&columnList=${columnList}`,
                     method: 'GET'
                 }, function (error, response, body){
                     if (error){
@@ -599,7 +599,7 @@ describe('rest api',
                 const tableName = 'customuser';
                 const columnList = 'idcustomuser,username';
                 request({
-                    url: `http://localhost:3000/test/data/createTableByName?tableName=${tableName}&columnList=${columnList}`,
+                    url: `http://localhost:54471/test/data/createTableByName?tableName=${tableName}&columnList=${columnList}`,
                     method: 'GET'
                 }, function (error, response, body){
                     if (error){
@@ -627,7 +627,7 @@ describe('rest api',
 
                 // recupera un dataset e poi lo popola a aprtire dalla riga principale
                 request({
-                    url: 'http://localhost:3000/test/data/getDataSet',
+                    url: 'http://localhost:54471/test/data/getDataSet',
                     method: 'POST',
                     headers: {
                         "language": "it"
@@ -649,7 +649,7 @@ describe('rest api',
                     let objser = q.toObject(filter);
                     let filterSerialized = JSON.stringify(objser);
                     request({
-                        url: 'http://localhost:3000/test/data/getDsByRowKey',
+                        url: 'http://localhost:54471/test/data/getDsByRowKey',
                         method: 'POST',
                         headers: {
                             "language": "it"
@@ -679,7 +679,7 @@ describe('rest api',
                         const objser = ds.serialize(true);
                         const dsSerialized = JSON.stringify(objser);
                         request({
-                            url: 'http://localhost:3000/test/data/saveDataSet',
+                            url: 'http://localhost:54471/test/data/saveDataSet',
                             headers: {
                                 "language": "it"
                             },
@@ -737,7 +737,7 @@ describe('rest api',
 
                 // recupera un dataset e poi lo popola a aprtire dalla riga principale
                 request({
-                    url: 'http://localhost:3000/test/data/getDataSet',
+                    url: 'http://localhost:54471/test/data/getDataSet',
                     method: 'POST',
                     form: {
                         tableName: tableName,
@@ -757,7 +757,7 @@ describe('rest api',
                     let objser = q.toObject(filter);
                     let filterSerialized = JSON.stringify(objser);
                     request({
-                        url: 'http://localhost:3000/test/data/getDsByRowKey',
+                        url: 'http://localhost:54471/test/data/getDsByRowKey',
                         method: 'POST',
                         form: {
                             tableName: tableName,
@@ -784,7 +784,7 @@ describe('rest api',
                         const objser = ds.serialize(true);
                         const dsSerialized = JSON.stringify(objser);
                         request({
-                            url: 'http://localhost:3000/test/data/saveDataSet',
+                            url: 'http://localhost:54471/test/data/saveDataSet',
                             method: 'POST',
                             form: {
                                 tableName: tableName,
@@ -841,7 +841,7 @@ describe('rest api',
                 const userName = 'AZZURRO';
                 const password = '-------';
                 request({
-                    url: `http://localhost:3000/test/auth/login`,
+                    url: `http://localhost:54471/test/auth/login`,
                     method: 'POST',
                     form: {
                         userName: userName,
@@ -866,7 +866,7 @@ describe('rest api',
                 const userName = 'AZZURRO';
                 const password = 'SEG_PSUMA';
                 request({
-                    url: `http://localhost:3000/test/auth/login`,
+                    url: `http://localhost:54471/test/auth/login`,
                     method: 'POST',
                     form: {
                         userName: userName,
@@ -912,7 +912,7 @@ describe('rest api',
                 let formData = new FormData();
                 formData.append("file", fs.createReadStream(path), filePartName);
 
-                fetch('http://localhost:3000/test/file/uploadchunk',
+                fetch('http://localhost:54471/test/file/uploadchunk',
                         {method: 'POST', body: formData})
                 .then((response)=> {
                     //console.log(response);
@@ -969,7 +969,7 @@ describe('rest api',
 
                //formData.file.value.path = path.replace(chunk1, filePartName);
 
-               let response = await fetch('http://localhost:3000/test/file/uploadchunk',
+               let response = await fetch('http://localhost:54471/test/file/uploadchunk',
                    {method: 'POST', body: formData});
 
                expect(response).toBeDefined();
@@ -986,7 +986,7 @@ describe('rest api',
                formData = new FormData();
                formData.append("file", fs.createReadStream(path), filePartName);
 
-               response = await fetch('http://localhost:3000/test/file/uploadchunk',
+               response = await fetch('http://localhost:54471/test/file/uploadchunk',
                    {method: 'POST', body: formData});
 
                let objParsed = await response.json();
@@ -1024,7 +1024,7 @@ describe('rest api',
         it('download file (after test upload file chunk less 1MB. ok)',
             function (done) {
                 request({
-                    url: `http://localhost:3000/test/file/download?idattach=1`,
+                    url: `http://localhost:54471/test/file/download?idattach=1`,
                     method: 'GET'
                 }, async function (error, response, body) {
                     if (error) {

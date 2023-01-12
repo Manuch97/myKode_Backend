@@ -88,7 +88,7 @@ describe('API with anonimous connection',
             const tableName = "attach";
             const editType = "counter";
                 request({
-                    url: 'http://localhost:3000/testanonymous/data/getDataSet',
+                    url: 'http://localhost:54471/testanonymous/data/getDataSet',
                     method: 'POST',
                     headers: {
                         'authorization': "Bearer " + tokenConfig.AnonymousToken,
@@ -115,7 +115,7 @@ describe('API with anonimous connection',
                 const tableName = "attach";
                 const editType = "anonymous";
                 request({
-                    url: 'http://localhost:3000/testanonymous/data/getDataSet',
+                    url: 'http://localhost:54471/testanonymous/data/getDataSet',
                     method: 'POST',
                     headers: {
                         'authorization': "Bearer " + tokenConfig.AnonymousToken,

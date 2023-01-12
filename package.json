@@ -1,6 +1,6 @@
 {
   "name": "jsmetabackend",
-  "version": "1.0.9",
+  "version": "1.0.11",
   "description": "Backend js Framework",
   "main": "index.js",
   "scripts": {
@@ -40,6 +40,7 @@
     "grunt-keepalive": "^1.0.0",
     "grunt-open": "^0.2.4",
     "grunt-shell": "^3.0.1",
+    "grunt-wiredep": "^3.0.1",
     "jasmine": "^4.1.0",
     "jasmine-console-reporter": "^3.1.0",
     "jasmine-core": "3.6.0",
