@@ -49,7 +49,7 @@ const rep = JasmineClass.ConsoleReporter;  //require("jasmine.console_reporter.j
 const reporter = new JasmineConsoleReporter({
     colors: 2,           // (0|false)|(1|true)|2
     cleanStack: 1,       // (0|false)|(1|true)|2|3
-    verbosity: 1,        // (0|false)|1|2|(3|true)|4|Object
+    verbosity: 2,        // (0|false)|1|2|(3|true)|4|Object
     listStyle: 'indent', // "flat"|"indent"
     timeUnit: 'ms',      // "ms"|"ns"|"s"
     timeThreshold: { ok: 500, warn: 1000, ouch: 3000 }, // Object|Number

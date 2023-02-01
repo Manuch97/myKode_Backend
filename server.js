@@ -23,7 +23,7 @@ DbList.init({
 let port = process.argv[2] || process.env.PORT || 54471;
 
 let GetMeta = require("./client/components/metadata/GetMeta");
-GetMeta.setPath("./../../metadata"); //all metadata must be stored here
+GetMeta.setPath("./../../meta"); //all metadata must be stored here
 
 //This must be executed as soon as possible
 JsToken.assureMasterKey();

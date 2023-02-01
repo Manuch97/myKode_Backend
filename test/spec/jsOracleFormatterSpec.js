@@ -9,7 +9,7 @@ const $q= require('../../client/components/metadata/jsDataQuery').jsDataQuery,
 
 function fieldGet(field){return function(r){return r[field];};}
 
-xdescribe('DataQuery functions', function () {
+xdescribe('oracle DataQuery functions', function () {
 
   var ds,
       /**

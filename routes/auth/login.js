@@ -33,7 +33,7 @@ async function login(req,res,next){
     let dbInfo = DBList.getDbInfo(ctx.dbCode);
     let userkind =  dbInfo.userkindUserPassw;
     await AuthUtils._doLogin(ctx, req.body.userName, req.body.password,
-            req.body.datacontabile,null, userkind, req,res);
+        new Date(req.body.datacontabile),null, userkind, req,res);
 }
 
 

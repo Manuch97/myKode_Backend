@@ -10,12 +10,13 @@ const codeLen = 12;        // Numero di byte da generare per i codici di attivaz
  */
 
 
+
 /**
- * Verifies the hash for a password
+ * Generates an hash for a password
  * @param {string} password
  * @param {Buffer} salt
- * @param {Buffer} secureHash
  * @param {int} iterations
+ * @param {string} digest  sha1|sha256|sha512
  * @return {boolean}
  */
 async function verify(password,salt,secureHash, iterations){
@@ -29,7 +30,13 @@ async function verify(password,salt,secureHash, iterations){
     if (!pwdHash) {
         return false;
     }
+    if (pwdHash.compare(secureHash) === 0) return true;
+    pwdHash = generateHash(password, salt, iterations,'sha1');
+    if (!pwdHash) {
+        return false;
+    }
     return pwdHash.compare(secureHash) === 0;
+
 }
 
 /**
@@ -39,13 +46,13 @@ async function verify(password,salt,secureHash, iterations){
  * @param {int} iterations
  * @return {Buffer}
  */
-function generateHash(password,salt,iterations){
+function generateHash(password,salt,iterations, digest){
     if (!password) return null;
     if (!salt) return  null;
     if (iterations<1)return  null;
     if (salt.length < 8) return null;
-
-    return crypto.pbkdf2Sync(Buffer.from(password), salt, iterations, 256, 'sha1');
+    digest = digest || "sha256";
+    return crypto.pbkdf2Sync(Buffer.from(password), salt, iterations, 20, digest);
 }
 
 /**

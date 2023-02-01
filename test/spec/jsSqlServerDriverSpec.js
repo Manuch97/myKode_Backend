@@ -65,6 +65,8 @@ describe('sqlServerDriver ', function () {
                 user: dbConfig.user,
                 pwd: dbConfig.pwd,
                 database: dbName,
+                schema:"DBO",
+                defaultSchema:"DBO"
             },
             bad: {
                 server: dbConfig.server,

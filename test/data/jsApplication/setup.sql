@@ -852,6 +852,7 @@ AS BEGIN
 				(U.idflowchart+'§'+convert(varchar(10),U.ndetail)) as k
 				from flowchartuser U
 					join flowchart F on U.idflowchart=F.idflowchart where
+					F.ayear=year(@currdate) and
 					U.idcustomuser = @idcustomuser and
 						(U.start is null or U.start<= @currdate) and
 						(U.stop is null or U.stop>= @currdate)

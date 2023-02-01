@@ -14,9 +14,8 @@ async function middleware(req,res,next){
 
     env.sys("idflowchart", req.body.idflowchart);
     env.sys("ndetail", req.body.ndetail);
-    //calcUserEnvironment needs idflowchart and ndetail set in env.sys
-    await env.calcUserEnvironment(ctx.dataAccess);
-
+    //calcUserEnvironment needs idflowchart and ndetail set in env.sys    
+    await env.calcUserEnvironment(ctx.dataAccess);    
     res.json({
         usr:AuthUtils.serializeUsr(env),
         sys:AuthUtils.serializeSys(env)

@@ -95,7 +95,7 @@ Security.prototype= {
      */
     getConditions: function (tableName, op,env){
         /*{object []} */
-        let idgroups= env.usr("usergrouplist");
+        let idgroups= env.sys("usergrouplist");
         let key = tableName+'#'+op+'#'+idgroups.join('§');
         if (this.filteredConditions[key]!==undefined){
             return this.filteredConditions[key];

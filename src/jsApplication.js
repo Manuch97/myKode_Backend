@@ -96,7 +96,7 @@ JsApplication.prototype = {
      * @param res
      * @param ctx
      */
-    releaseConnection: function(req, res, ctx) {
+    assureReleaseConnection: function(req, res, ctx) {
         let released=false;
         res.on('close', () => {
             if (released){
@@ -339,9 +339,10 @@ JsApplication.prototype = {
             ctx.getMeta= function (tableName){
                 return GetMeta.getMeta(tableName,req);
             };
+            ctx.environmentSet = this.environmentSet.bind(this,ctx);
             ctx.getDataInvoke = new GetDataInvoke(ctx);
             req.app.locals.context = ctx;
-            this.releaseConnection(req, res, ctx);
+            this.assureReleaseConnection(req, res, ctx);
             next();
         })
         .fail(err=>{
@@ -350,6 +351,10 @@ JsApplication.prototype = {
             });
         });
 
+    },
+    environmentSet:function (ctx,env){
+        let sessionID = ctx.identity.sessionID();
+        this.environments[sessionID] = env;
     },
 
     getSecurityProvider: function(){
@@ -379,7 +384,6 @@ JsApplication.prototype = {
             //If a token is not present, evaluates an anonymous identity
             let identity = getIdentityFromRequest(req);
             //let sessionID = identity.sessionID();
-
             //let env = this.environments[sessionID];
             if (!env) {
                 res.status(401).json({

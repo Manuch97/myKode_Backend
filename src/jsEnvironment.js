@@ -163,7 +163,7 @@ Environment.prototype.getCustomUser= function(conn){
  */
 Environment.prototype.getGroupList = function(conn) {
     let d = Deferred();
-    if (this.usr("usergrouplist")) {
+    if (this.sys("usergrouplist")) {
         return d.resolve(this.sys("usergrouplist"));
     }
     this.getCustomUser(conn)
@@ -178,7 +178,7 @@ Environment.prototype.getGroupList = function(conn) {
                 filter: Q.eq("idcustomuser", idcustomuser)
             })
                 .then(t => {
-                    this.usr("usergrouplist", t.map(r=>r.idcustomgroup));
+                    this.sys("usergrouplist", t.map(r=>r.idcustomgroup));
                     d.resolve(this.sys("usergrouplist"));
                 });
 

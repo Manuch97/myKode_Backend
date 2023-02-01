@@ -546,7 +546,7 @@ describe('rest api',
 
         it("changeRole ws: re-calculates environment",
             function (done){
-                const idflowchart = '210001';
+                const idflowchart = '230001';
                 const ndetail = '1';
                 request({
                     url: 'http://localhost:54471/test/data/changeRole',
@@ -563,9 +563,9 @@ describe('rest api',
                         return;
                     }
                     const objParsed = JSON.parse(body);
-                    expect(Object.keys(objParsed.sys).length).toBe(0);
+                    expect(Object.keys(objParsed.sys).length).toBeGreaterThan(0);
                     expect(Object.keys(objParsed.usr).length).toBeGreaterThan(0);
-                    expect(objParsed.usr.usergrouplist).toBe('ORGANIGRAMMA');
+                    expect(objParsed.sys.usergrouplist).toBe('ORGANIGRAMMA');
                     done();
                 });
             }, timeout);
@@ -846,7 +846,7 @@ describe('rest api',
                     form: {
                         userName: userName,
                         password: password,
-                        datacontabile: (new Date()).toJSON(),
+                        datacontabile: (new Date(2023,12,31)).toJSON(),
                     }
                 }, function (error, response, body){
                     if (error){
@@ -871,7 +871,7 @@ describe('rest api',
                     form: {
                         userName: userName,
                         password: password,
-                        datacontabile: (new Date()).toJSON(),
+                        datacontabile: (new Date(2023,12,31)).toJSON(),
                     }
                 }, function (error, response, body){
                     if (error){
@@ -887,7 +887,7 @@ describe('rest api',
             }, timeout);
 
         it('getMeta should get Metadata', () => {
-            GetMeta.setPath('./../../metadata/');
+            GetMeta.setPath('./../../meta/');
             let m = GetMeta.getMeta("attach");
             expect(m.name).toBe("meta_attach");
         });

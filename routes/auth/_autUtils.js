@@ -1,4 +1,4 @@
-const {JsDataQueryParser: parser} = require("../../src/jsDataQueryParser");
+const  parser = require("../../src/jsDataQueryParser").JsDataQueryParser;
 const q = require("./../../client/components/metadata/jsDataQuery");
 const DBList = require("./../../src/jsDbList");
 const jsPassword = require("./../../src/jsPassword");
@@ -15,7 +15,7 @@ function serializeUsr(env){
     return env.enumUsr().reduce((res, k) => {
         let val = env.usr(k);
         if (k.startsWith("cond_sor")){
-            const sqlFun = parser.from(val);
+            const sqlFun = new parser().from(val);
             if (sqlFun === null){
                 res[k] = sqlFun;
             } else {
@@ -33,8 +33,13 @@ function serializeUsr(env){
  * @param {Environment} env
  */
 function serializeSys(env){
-    // COMMENTATO PER RAGIONI DI SICUREZZA NON INVIO LE SYS
-    return {};
+    return ["idflowchart","user","idcustomuser","ndetail","usergrouplist","ayear","esercizio"]
+        .reduce((res, k) => {
+        let val = env.sys(k);
+        res[k] = Array.isArray(val) ? val.join(',') : val;
+        return res;
+    }, {});
+
 }
 
 
@@ -74,8 +79,8 @@ async function _doLogin(ctx, userName, password,
             ctx.dataAccess.externalUser = userName;
             env.usr("externalUser",userName);
             env.usr("HasVirtualUser","S");
-            env.usr("user",vUser["sys_user"]);
-            env.usr("usergrouplist",null);
+            env.sys("user",vUser["sys_user"]);
+            env.sys("usergrouplist",null);
             env.usr("forename",vUser["forename"]);
             env.usr("surname",vUser["surname"]);
             env.usr("email",vUser["email"]);
@@ -83,8 +88,8 @@ async function _doLogin(ctx, userName, password,
         }
         else {
             // it was not linked to a virtual user
-            env.usr("user",userName);
-            env.usr("usergrouplist",null);
+            env.sys("user",userName);
+            env.sys("usergrouplist",null);
         }
     }
     catch (err){
@@ -133,8 +138,8 @@ async function _doLogin(ctx, userName, password,
         }
         //i bytearray sono convertiti in string da EdgeCompiler.cs tramite Convert.ToBase64String ((byte[])value)
         // quindi è necessario riconvertirli in buffer come segue
-        let salt= new Buffer(referenceRow["saltweb"],"base64");
-        let hash = new Buffer(referenceRow["passwordweb"],"base64");
+        let salt= new Buffer(referenceRow["saltweb"],"hex");
+        let hash = new Buffer(referenceRow["passwordweb"],"hex");
 
         if (! await  jsPassword.verify(password, salt, hash, iterations)){
             return res.send(401,"Bad credentials");
@@ -149,12 +154,9 @@ async function _doLogin(ctx, userName, password,
         expr:"title"
     });
 
-    await env.getGroupList(ctx.dataAccess);
+    await env.load(ctx.dataAccess);
     let idflowchart = env.sys("idflowchart");
     let ndetail = env.sys("ndetail");
-
-    //modify environment "in place" so it is already in the cache
-    await env.calcUserEnvironment(ctx.dataAccess);
 
     // assure user is under security rules
     if (!env.sys("idflowchart")  || ! env.sys("ndetail")){
@@ -171,7 +173,7 @@ async function _doLogin(ctx, userName, password,
     env.usr("userweb", userName);
     env.usr("idreg",idreg);
 
-    let roles = await getRoles(today(),env.sys("idcustomuser"));
+    let roles = await getRoles(accountDate,env.sys("idcustomuser"));
 
     //modify temporary identity
     let identity = ctx.identity;
@@ -185,15 +187,17 @@ async function _doLogin(ctx, userName, password,
 
     let token = new jsToken.Token(req,identity);
 
+    ctx.environmentSet(env);
+
     //Sends token to the client
-    res.send({
+    let result = {
         usr: serializeUsr(env),
         sys: serializeSys(env),
         token: token.getToken(),
         dtRoles:roles.serialize(),
         expiresOn:identity.expiresOn
-    });
-
+    };
+    res.json(result);
 
 
 }
@@ -208,15 +212,15 @@ async function _doLogin(ctx, userName, password,
  * @return {Promise<DataTable>}
  */
 async function getRoles(aDate,idCustomUser, ctx){
-    let roles = await ctx.dataAccess.callSP("compute_roles",[aDate,idCustomUser])[0];
+    let roles = await ctx.dataAccess.callSP("compute_roles",[aDate,idCustomUser]);
     let t = new jsDataSet.DataTable("roles");
     t.setDataColumn("idflowchart",CType.string);
     t.setDataColumn("title",CType.string);
     t.setDataColumn("ndetail",CType.int);
     t.setDataColumn("k",CType.string);
     t.key("k");
-    _.forEach(roles,r=>{
-        let row = t.newRow();
+    _.forEach(roles[0],r=>{
+        t.load(r, false);
     });
     return  t;
 }

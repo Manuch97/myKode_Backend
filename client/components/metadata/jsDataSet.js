@@ -1803,8 +1803,8 @@
                 return _.pickBy(r,function(o){return o!==null && o!==undefined;});
             };
             let t = {};
+            t.key = this.key().join();
             if (serializeStructure) {
-                t.key = this.key().join();
                 t.tableForReading = this.tableForReading();
                 t.tableForWriting = this.tableForWriting();
                 t.isCached = this.isCached;
@@ -1906,7 +1906,9 @@
                     });
                 }
 
-                this.key(t.key.split(','));
+                if (t.key){
+                    this.key(t.key.split(','));
+                }
             }
 
             that.name=t.name;

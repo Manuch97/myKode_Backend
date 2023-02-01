@@ -163,7 +163,7 @@ function Connection(options) {
      * @property schema
      * @type {string}
      */
-    this.schema = this.defaultSchema;
+    this.schema =this.opt.schema || this.opt.defaultSchema;
 
     this.timeOut = this.opt.timeOut || 600;
 
@@ -311,7 +311,7 @@ Connection.prototype.open = function () {
             if (that.schema === that.defaultSchema) {
                 connDef.resolve(that);
                 return;
-            }
+            }      
             that.useSchema(that.schema)
                 .done(function () {
                     connDef.resolve(that);
@@ -753,6 +753,8 @@ Connection.prototype.tableDescriptor = function (tableName) {
 
                 result.forEach(c=>{
                     c.ctype = mapping[c.type.toUpperCase()]||CType.unknown;
+                    c.pk = c.pk? 1:0;
+                    c.is_nullable = c.is_nullable?1:0;
                 });
 
                 if (result[0].xtype.trim() === 'U') {

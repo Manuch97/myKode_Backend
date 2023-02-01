@@ -4,5 +4,7 @@
 "user": "sa",
 "pwd": "afrodite",
 "database": "test",
-"sqlModule": "jsSqlServerDriver"
+"sqlModule": "jsSqlServerDriver",
+  "schema": "DBO",
+  "defaultSchema": "DBO"
 }
